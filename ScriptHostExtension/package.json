@@ -1,0 +1,102 @@
+{
+    "name": "windowsiot",
+    "displayName": "Windows Iot Core Extension for VS Code",
+    "description": "Description of Windows IoT Core extension",
+    "version": "0.0.4",
+    "publisher": "Microsoft",
+    "engines": {
+        "vscode": "^0.10.10"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.getDeviceInfo",
+        "onCommand:extension.uploadFile",
+        "onCommand:extension.installPackage",
+        "onCommand:extension.getDeviceName",
+        "onCommand:extension.setDeviceName",
+        "onCommand:extension.getPackages"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "configuration": {
+            "title": "iot configuration",
+            "properties": {
+                "iot.IpAddress" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "IP Address of the target Windows IoT Core device"
+                },
+                "iot.DeviceName" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "Name of the target Windows IoT Core device"
+                },
+                "iot.Name" : {
+                    "type": ["string", "null"],
+                    "default": "Administrator",
+                    "description": "User name on the target Windows IoT Core device"
+                },
+                "iot.Password" : {
+                    "type": ["string", "null"],
+                    "default": "p@ssw0rd",
+                    "description": "Password on the target Windows IoT Core device"
+                },
+                "iot.File" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "file to upload"
+                },
+                "iot.PackageFullName" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "package to upload file to"
+                }
+            }
+        },
+        "commands": 
+        [{
+            "command": "extension.getDeviceInfo",
+            "title": "Get Device Info"
+        },
+        {
+            "command": "extension.getDeviceName",
+            "title": "Get Device Name"
+        },
+        {
+            "command": "extension.getPackages",
+            "title": "Get Installed Packages"
+        },
+        {
+            "command": "extension.setDeviceName",
+            "title": "Set Device Name"
+        },
+        {
+             "command": "extension.installPackage",
+             "title": "Install package to device"
+        },
+        {
+             "command": "extension.uploadFile",
+             "title": "Upload file to device"
+        }],
+        "keybindings": [{
+            "command": "extension.installPackage",
+            "key": "ctrl+1",
+            "mac": "cmd+1",
+            "when": "editorTextFocus"
+        }]
+    },
+    "scripts": {
+        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "dependencies": {
+        "request": "^2.72.0"
+    },
+    "devDependencies": {
+        "typescript": "^1.8.5",
+        "vscode": "^0.11.0"
+    }
+}

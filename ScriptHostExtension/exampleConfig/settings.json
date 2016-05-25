@@ -1,0 +1,8 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "iot.IpAddress": "10.137.185.215",
+    "iot.DeviceName": "paulmon-vm",
+    "iot.Name": "Administrator",
+    "iot.Password": "p@ssw0rd",
+    "iot.File": "c:\\node\\hello2.txt"
+}
