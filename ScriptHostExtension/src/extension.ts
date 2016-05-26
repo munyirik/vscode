@@ -36,6 +36,12 @@ export function activate(context: vscode.ExtensionContext) {
         iotDevice.InstallPackage();       
     });
     context.subscriptions.push(disposableInstallPackage);
+    
+    let disposableListIotCommands =  vscode.commands.registerCommand('extension.listIotCommands', () => {
+        let iotDevice = new IotDevice();
+        iotDevice.ListIotCommands();       
+    });
+    context.subscriptions.push(disposableListIotCommands);
 
     let disposableUploadFile = vscode.commands.registerCommand('extension.uploadFile', () => {       
         let iotDevice = new IotDevice();
@@ -53,8 +59,25 @@ export function activate(context: vscode.ExtensionContext) {
         let iotDevice = new IotDevice();
         iotDevice.SetDeviceName();       
     });
-    
     context.subscriptions.push(disposableSetDeviceName);
+
+    let disposableRunCommand = vscode.commands.registerCommand('extension.runCommand', () => {
+        let iotDevice = new IotDevice();
+        iotDevice.RunCommand();       
+    });
+    context.subscriptions.push(disposableRunCommand);
+    
+    let disposableStartApp = vscode.commands.registerCommand('extension.startApp', () => {
+        let iotDevice = new IotDevice();
+        iotDevice.StartApp();       
+    });
+    context.subscriptions.push(disposableStartApp);
+
+    let disposableStopApp = vscode.commands.registerCommand('extension.stopApp', () => {
+        let iotDevice = new IotDevice();
+        iotDevice.StopApp();       
+    });
+    context.subscriptions.push(disposableStopApp);   
 }
 
 // this method is called when your extension is deactivated

@@ -1,8 +1,28 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "iot.IpAddress": "10.137.185.215",
-    "iot.DeviceName": "paulmon-vm",
-    "iot.Name": "Administrator",
-    "iot.Password": "p@ssw0rd",
-    "iot.File": "c:\\node\\hello2.txt"
+    "iot" : {
+        "Device" : {
+            "IpAddress": "10.137.185.215",
+            "DeviceName": "paulmon-vm",
+            "UserName": "Administrator",
+            "Password": "p@ssw0rd"
+        },
+        "File": "c:\\node\\hello2.txt",
+        "AppxInfo": {
+            "Appx" : "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Clock_1.0.6.0_x86.appx",
+            "Certificate" : "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Clock_1.0.6.0_x86.cer",
+            "Dependencies" :
+            [
+                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.NET.Native.Framework.1.3.appx",
+                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.NET.Native.Runtime.1.3.appx",
+                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.VCLibs.x86.14.00.appx"
+            ],
+            "PackageFullName": "Clock_1.0.6.0_x86__dnsz84vs3g3zp",
+            "PackageRelativeId" : "Clock_dnsz84vs3g3zp!App"
+        },
+        "RunCommands": [
+            "c:\\test\\TakeRegistryAdminOwnership.exe MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service",
+            "reg add HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service /v RequireDevUnlock /t REG_DWORD /d 0"
+        ]
+    }
 }

@@ -12,33 +12,37 @@
     ],
     "activationEvents": [
         "onCommand:extension.getDeviceInfo",
-        "onCommand:extension.uploadFile",
-        "onCommand:extension.installPackage",
         "onCommand:extension.getDeviceName",
+        "onCommand:extension.getPackages",
+        "onCommand:extension.installPackage",
+        "onCommand:extension.listIotCommands",
         "onCommand:extension.setDeviceName",
-        "onCommand:extension.getPackages"
+        "onCommand:extension.runCommand",
+        "onCommand:extension.startApp",
+        "onCommand:extension.stopApp",
+        "onCommand:extension.uploadFile"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "configuration": {
             "title": "iot configuration",
             "properties": {
-                "iot.IpAddress" : {
+                "iot.Device.IpAddress" : {
                     "type": ["string", "null"],
                     "default": null,
                     "description": "IP Address of the target Windows IoT Core device"
                 },
-                "iot.DeviceName" : {
+                "iot.Device.DeviceName" : {
                     "type": ["string", "null"],
                     "default": null,
                     "description": "Name of the target Windows IoT Core device"
                 },
-                "iot.Name" : {
+                "iot.Device.UserName" : {
                     "type": ["string", "null"],
                     "default": "Administrator",
                     "description": "User name on the target Windows IoT Core device"
                 },
-                "iot.Password" : {
+                "iot.Device.Password" : {
                     "type": ["string", "null"],
                     "default": "p@ssw0rd",
                     "description": "Password on the target Windows IoT Core device"
@@ -48,10 +52,34 @@
                     "default": null,
                     "description": "file to upload"
                 },
-                "iot.PackageFullName" : {
+                "iot.AppxInfo.Appx" : {
                     "type": ["string", "null"],
                     "default": null,
-                    "description": "package to upload file to"
+                    "description": "Local appx file path"
+                },
+                "iot.AppxInfo.Certificate" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "Local certificate file path"
+                },
+                "iot.AppxInfo.Dependencies" : {
+                    "type": "array",
+                    "default": null,
+                    "description": "Array of local paths to dependencies"
+                },
+                "iot.AppxInfo.PackageFullName" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "Package Full Name"
+                },
+                "iot.AppxInfo.PackageRelativeId" : {
+                    "type": ["string", "null"],
+                    "default": null,
+                    "description": "Package relative id"
+                },
+                "iot.RunCommands" : {
+                    "type": "array",
+                    "title": "List of commands"
                 }
             }
         },
@@ -69,23 +97,40 @@
             "title": "Get Installed Packages"
         },
         {
+             "command": "extension.installPackage",
+             "title": "Install Package to Device"
+        },
+        {
+            "command": "extension.listIotCommands",
+            "title": "List IoT Extension Commands"
+        },
+        {
+            "command": "extension.runCommand",
+            "title": "Run Command on Device"
+        },
+        {
             "command": "extension.setDeviceName",
             "title": "Set Device Name"
         },
         {
-             "command": "extension.installPackage",
-             "title": "Install package to device"
+             "command": "extension.startApp",
+             "title": "Start Application on Device"
+        },
+        {
+             "command": "extension.stopApp",
+             "title": "Stop Application on Device"
         },
         {
              "command": "extension.uploadFile",
-             "title": "Upload file to device"
-        }],
-        "keybindings": [{
-            "command": "extension.installPackage",
-            "key": "ctrl+1",
-            "mac": "cmd+1",
-            "when": "editorTextFocus"
+             "title": "Upload File to Device"
         }]
+        // TODO: this didn't work as intended even though it showed as bound in the ui
+        // "keybindings": [{
+        //     "command": "extension.installPackage",
+        //     "key": "ctrl+1",
+        //     "mac": "cmd+1",
+        //     "when": "editorTextFocus"
+        // }]
     },
     "scripts": {
         "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
