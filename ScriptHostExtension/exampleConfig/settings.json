@@ -7,7 +7,7 @@
             "UserName": "Administrator",
             "Password": "p@ssw0rd"
         },
-        "File": "c:\\test\\server.js",
+        "File": "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js",
         "AppxInfo": {
             "Appx" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.appx",
             "Certificate" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.cer",

@@ -124,13 +124,6 @@
              "command": "extension.uploadFile",
              "title": "Upload File to Device"
         }]
-        // TODO: this didn't work as intended even though it showed as bound in the ui
-        // "keybindings": [{
-        //     "command": "extension.installPackage",
-        //     "key": "ctrl+1",
-        //     "mac": "cmd+1",
-        //     "when": "editorTextFocus"
-        // }]
     },
     "scripts": {
         "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
