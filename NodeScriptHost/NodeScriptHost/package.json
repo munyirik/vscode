@@ -1,0 +1,10 @@
+{
+  "name": "node-script-host",
+  "version": "0.0.0",
+  "description": "NodeScriptHost",
+  "main": "server.js",
+  "author": {
+    "name": "paulmon",
+    "email": ""
+  }
+}

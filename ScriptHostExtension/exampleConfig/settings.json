@@ -7,18 +7,16 @@
             "UserName": "Administrator",
             "Password": "p@ssw0rd"
         },
-        "File": "c:\\node\\hello2.txt",
+        "File": "c:\\test\\server.js",
         "AppxInfo": {
-            "Appx" : "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Clock_1.0.6.0_x86.appx",
-            "Certificate" : "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Clock_1.0.6.0_x86.cer",
+            "Appx" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.appx",
+            "Certificate" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.cer",
             "Dependencies" :
             [
-                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.NET.Native.Framework.1.3.appx",
-                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.NET.Native.Runtime.1.3.appx",
-                "\\\\scratch2\\scratch\\paulmon\\appx\\Clock_1.0.6.0_x86_Test\\Dependencies\\x86\\Microsoft.VCLibs.x86.14.00.appx"
+                "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\Dependencies\\x86\\Microsoft.VCLibs.x86.14.00.appx"
             ],
-            "PackageFullName": "Clock_1.0.6.0_x86__dnsz84vs3g3zp",
-            "PackageRelativeId" : "Clock_dnsz84vs3g3zp!App"
+            "PackageFullName": "NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
+            "PackageRelativeId" : "NodeScriptHost_dnsz84vs3g3zp!App"
         },
         "RunCommands": [
             "c:\\test\\TakeRegistryAdminOwnership.exe MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service",

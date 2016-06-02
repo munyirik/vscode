@@ -360,7 +360,6 @@ export class IotDevice
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
                 } else {
-                    //iotOutputChannel.appendLine(`Successfully started ${packageRelativeId}`);
                     iotOutputChannel.appendLine('not implemented');
                     iotOutputChannel.appendLine( '' );
                 }
@@ -393,13 +392,14 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Starting ${packageRelativeId}`);
             var req = request.post(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
                 } else {
-                    iotOutputChannel.appendLine('Successfully started ${packageRelativeId}');
+                    iotOutputChannel.appendLine('Application Started');
                     iotOutputChannel.appendLine( '' );
                 }
             });
@@ -431,13 +431,14 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Stopping ${packageFullName}`);
             var req = request.delete(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
                 } else {
-                    iotOutputChannel.appendLine('Successfully stopped ${packageRelativeId}');
+                    iotOutputChannel.appendLine('Application Stopped');
                     iotOutputChannel.appendLine( '' );
                 }
             });
