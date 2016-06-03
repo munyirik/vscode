@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposableUploadFile = vscode.commands.registerCommand('extension.uploadFile', () => {       
         let iotDevice = new IotDevice();
-        iotDevice.UploadFile();       
+        iotDevice.UploadFile();
     });
     context.subscriptions.push(disposableUploadFile);
     
@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposableRunCommand = vscode.commands.registerCommand('extension.runCommand', () => {
         let iotDevice = new IotDevice();
-        iotDevice.RunCommand();       
+        iotDevice.RunCommandFromSettings();       
     });
     context.subscriptions.push(disposableRunCommand);
     

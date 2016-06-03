@@ -327,7 +327,13 @@ export class IotDevice
         });
     }
 
-    public RunCommand()
+    public RunCommandFromSettings()
+    {
+        // TODO: show pick list of commands from config file
+        this.RunCommand('icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F');
+    }
+    
+    public RunCommand(command: string)
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
@@ -335,16 +341,6 @@ export class IotDevice
         this.getHost().then((h:string) => {
             host = h; 
             
-            var packageRelativeId :string = config.get('AppxInfo.PackageRelativeId', '');
-            if (!packageRelativeId)
-            {
-                console.log("iot.AppxInfo.PackageRelativeId is null");
-                vscode.window.showErrorMessage('Please specify iot.AppxInfo.PackageRelativeId in workspace settings');
-                return;
-            }
-
-            // TODO: show pick list of commands from config file
-            var command = 'iotstartup list';
             var url = 'http://' + host + ':8080/api/iot/processmanagement/runcommand?command=' + new Buffer(command).toString('base64') + '&runasdefaultaccount=false' ;
             console.log ('url=' + url)
 
@@ -354,13 +350,14 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Running ${command}`)
             var req = request.post(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
                 } else {
-                    iotOutputChannel.appendLine('not implemented');
+                    iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
                     iotOutputChannel.appendLine( '' );
                 }
             });
