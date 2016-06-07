@@ -47,16 +47,24 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposableGetPackages = vscode.commands.registerCommand('extension.getPackages', () => {       
         let iotDevice = new IotDevice();
-        iotDevice.GetPackages();
+        var iotHost :string;
+        var iotUser :string;
+        var iotPassword: string;
+        iotDevice.GetHost().then( (host:string)=>{
+            iotHost = host;
+            return iotDevice.GetUserName();
+        }).then( (userName:string) => {
+            iotUser = userName;
+            return iotDevice.GetPassword();
+        }).then( (password: string) => {
+            iotPassword = password;
+            return iotDevice.GetPackages(iotHost, iotUser, iotPassword);
+        }).then( (info: any) => {
+            iotDevice.PrintPackages(iotHost, info);
+        })       
     });
     context.subscriptions.push(disposableGetPackages);
 
-    let disposableInstallPackage = vscode.commands.registerCommand('extension.installPackage', () => {       
-        let iotDevice = new IotDevice();
-        iotDevice.InstallPackage();
-    });
-    context.subscriptions.push(disposableInstallPackage);
-    
     let disposableListIotCommands =  vscode.commands.registerCommand('extension.listIotCommands', () => {
         let iotDevice = new IotDevice();
         iotDevice.ListIotCommands();

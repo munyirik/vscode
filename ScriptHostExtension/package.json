@@ -20,7 +20,6 @@
         "onCommand:extension.getDeviceName",
         "onCommand:extension.getExtensionInfo",
         "onCommand:extension.getPackages",
-        "onCommand:extension.installPackage",
         "onCommand:extension.listIotCommands",
         "onCommand:extension.setDeviceName",
         "onCommand:extension.runCommand",
@@ -106,10 +105,6 @@
         {
             "command": "extension.getPackages",
             "title": "iot: Get Installed Packages"
-        },
-        {
-             "command": "extension.installPackage",
-             "title": "iot: Install Package to Device"
         },
         {
             "command": "extension.listIotCommands",
