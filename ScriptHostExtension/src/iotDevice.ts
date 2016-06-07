@@ -7,6 +7,30 @@ import * as vscode from 'vscode';
 var request = require('request');
 var iotOutputChannel = vscode.window.createOutputChannel('IoT');
 
+var appx = {
+    "arm" : {
+        "package": "NodeScriptHost_1.0.0.0_ARM.appx",
+        "certificate": "NodeScriptHost_1.0.0.0_ARM.appx",
+        "dependencies": [
+            "Microsoft.VCLibs.ARM.14.00"
+        ]
+    },
+    "x86" : {
+        "package": "NodeScriptHost_1.0.0.0_x86.appx",
+        "certificate": "NodeScriptHost_1.0.0.0_x86.appx",
+        "dependencies": [
+            "Microsoft.VCLibs.x86.14.00"
+        ]
+    },
+    "x64" : {
+        "package": "NodeScriptHost_1.0.0.0_x64.appx",
+        "certificate": "NodeScriptHost_1.0.0.0_x64.appx",
+        "dependencies": [
+            "Microsoft.VCLibs.x64.14.00"
+        ]
+    }
+};
+
 export class IotDevice
 {
     //private outputChannel : vscode.OutputChannel;
@@ -17,7 +41,7 @@ export class IotDevice
         //this.outputChannel = vscode.window.createOutputChannel('IoT');
     }
     
-    public getHost() : Thenable<string>
+    public GetHost() : Thenable<string>
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string = config.get('Device.IpAddress', '');
@@ -29,18 +53,58 @@ export class IotDevice
         }
         else
         {
-            console.log("iot.Device.IPAddress is null");
-            //vscode.window.showErrorMessage('Please specify iot.IPAddress in workspace settings');
-            return vscode.window.showInputBox({"placeHolder":"device name or ip address", "prompt":"Enter IP Address"}); //.then((addr: string) => {resolve(addr)});
+            return vscode.window.showInputBox({"placeHolder":"device ip address", "prompt":"Enter IP Address"});
+        }
+    }
+
+    public GetUserName() : Thenable<string>
+    {
+        var config = vscode.workspace.getConfiguration('iot');
+        var userName :string = config.get('Device.UserName', '');
+        if (userName)
+        {
+            return new Promise<string> (function (resolve, reject){ 
+                resolve(userName);
+            });
+        }
+        else
+        {
+            return vscode.window.showInputBox({"placeHolder":"user name", "prompt":"Enter Device User Name"});
         }
     }
     
+    public GetPassword() : Thenable<string>
+    {
+        var config = vscode.workspace.getConfiguration('iot');
+        var password :string = config.get('Device.Password', '');
+        if (password)
+        {
+            return new Promise<string> (function (resolve, reject){ 
+                resolve(password);
+            });
+        }
+        else
+        {
+            return vscode.window.showInputBox({"placeHolder":"password", "prompt":"Enter Device Password"});
+        }
+    }
+
     private FileFromPath(path :string) :string
     {
         var filename = path.replace(/^.*[\\\/]/, '');
         return filename;
     }
     
+    public GetExtensionInfo()
+    {
+        let ext = vscode.extensions.getExtension('Microsoft.windowsiot');
+        iotOutputChannel.show();
+        iotOutputChannel.appendLine('ext.extensionPath=' + ext.extensionPath);
+        iotOutputChannel.appendLine('ext.exports=' + ext.exports);
+        iotOutputChannel.appendLine('ext.id=' + ext.id);
+        iotOutputChannel.appendLine('version='+ext.packageJSON.version);
+        iotOutputChannel.appendLine('');
+    }
     
     public ListIotCommands()
     {
@@ -54,47 +118,64 @@ export class IotDevice
         iotOutputChannel.appendLine('');
     }
     
-    public GetDeviceInfo()
+    public GetDeviceInfo(host: string, userName: string, password: string) : Thenable<any>
     {
-        var config = vscode.workspace.getConfiguration('iot');
-        var host :string;
-        this.getHost().then((h:string) => {
-            host = h; 
-            
+        return new Promise<any>( (resolve, reject) =>
+        {
+            //var config = vscode.workspace.getConfiguration('iot');               
             var url = 'http://' + host + ':8080/api/os/info';
             console.log ('url=' + url)
 
             var param = {'auth': {
-                'user': config.get("Device.UserName"),
-                'pass': config.get("Device.Password")
+                'user': userName,
+                'pass': password
             }};
 
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine('Get Device Info:');
             var req = request.get(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                } else {
+                if (!err && resp.statusCode == 200) 
+                {
                     var info = JSON.parse(body);
-                    iotOutputChannel.appendLine( 'ComputerName=' + info.ComputerName);
-                    iotOutputChannel.appendLine( 'Language=' + info.Language);
-                    iotOutputChannel.appendLine( 'OsEdition=' + info.OsEdition);
-                    iotOutputChannel.appendLine( 'OsEditionId=' + info.OsEditionId);
-                    iotOutputChannel.appendLine( 'OsVersion=' + info.OsVersion);
-                    iotOutputChannel.appendLine( 'Platform=' + info.Platform);
-                    iotOutputChannel.appendLine( '' );
+                    resolve(info);
                 }
+                else
+                { 
+                    if (err)
+                    {
+                        console.log(err.message);
+                        iotOutputChannel.appendLine(err.message);
+                        iotOutputChannel.appendLine( '' );
+                    }
+
+                    if (resp.statusCode != 200)
+                    {
+                        var info = JSON.parse(body);
+                        iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
+                        iotOutputChannel.appendLine( '' );
+                    }
+                } 
             });
         });
     }
     
+    public PrintDeviceInfo(host: string, info: any)
+    {
+        iotOutputChannel.show();
+        iotOutputChannel.appendLine('Get Device Info:');
+        iotOutputChannel.appendLine( 'Device=' + host );
+        iotOutputChannel.appendLine( 'ComputerName=' + info.ComputerName );
+        iotOutputChannel.appendLine( 'Language=' + info.Language );
+        iotOutputChannel.appendLine( 'OsEdition=' + info.OsEdition );
+        iotOutputChannel.appendLine( 'OsEditionId=' + info.OsEditionId );
+        iotOutputChannel.appendLine( 'OsVersion=' + info.OsVersion );
+        iotOutputChannel.appendLine( 'Platform=' + info.Platform );
+        iotOutputChannel.appendLine( '' );
+    }
+
     public GetDeviceName()
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var url = 'http://' + host + ':8080/api/os/machinename';
@@ -108,14 +189,27 @@ export class IotDevice
             iotOutputChannel.show();
             iotOutputChannel.appendLine('Get Device Name:');
             var req = request.get(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                } else {
+                if (!err && resp.statusCode == 200) 
+                {
                     var info = JSON.parse(body);
+                    iotOutputChannel.appendLine( 'Device=' + host );
                     iotOutputChannel.appendLine( 'ComputerName=' + info.ComputerName);
-                    iotOutputChannel.appendLine( '' );                    
+                    iotOutputChannel.appendLine( '' );
+                }                    
+                else 
+                {
+                    if (err){
+                        console.log(err.message);
+                        iotOutputChannel.appendLine(err.message);
+                        iotOutputChannel.appendLine( '' );
+                    }
+
+                    if (resp.statusCode != 200)
+                    {
+                        var info = JSON.parse(body);
+                        iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
+                        iotOutputChannel.appendLine( '' );
+                    }
                 }
             });
         });                       
@@ -125,7 +219,7 @@ export class IotDevice
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var devicename = config.get('Device.DeviceName', '');
@@ -146,15 +240,27 @@ export class IotDevice
 
             iotOutputChannel.show();
             var req = request.post(url, param, function (err, resp, body) {
-                if (err){
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                } else {
+                if (!err && resp.statusCode == 200) 
+                {
                     iotOutputChannel.appendLine(`Set Device Name succeeded!`);
                     iotOutputChannel.appendLine( '' );
                     
                     let iotDevice = new IotDevice();
                     iotDevice.RestartDevice(host);
+                }
+                else
+                {
+                    if (err){
+                        iotOutputChannel.appendLine(err.message);
+                        iotOutputChannel.appendLine( '' );
+                    }
+
+                    if (resp.statusCode != 200)
+                    {
+                        var info = JSON.parse(body);
+                        iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
+                        iotOutputChannel.appendLine( '' );
+                    }
                 }
             });
         });                       
@@ -172,13 +278,18 @@ export class IotDevice
         iotOutputChannel.show();
         var restarturl = 'http://' + host + ':8080/api/control/restart';
         var restartreq = request.post(restarturl, param, function (err, resp, body) {
-            if (err){
-                console.log(err.message);
-                iotOutputChannel.appendLine(err.message);
-                iotOutputChannel.appendLine( '' );
-            } else {
+            if (!err && resp.statusCode == 200) 
+            {
                 iotOutputChannel.appendLine(`Restarting device...`)
                 iotOutputChannel.appendLine( '' );
+            }
+            else 
+            {   if (err)
+                {
+                    console.log(err.message);
+                    iotOutputChannel.appendLine(err.message);
+                    iotOutputChannel.appendLine( '' );
+                }
             }
         });
     }
@@ -188,7 +299,7 @@ export class IotDevice
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
         let iotDevice = new IotDevice();
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var iotfile :string = config.get('File', '');
@@ -230,7 +341,7 @@ export class IotDevice
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var url = 'http://' + host + ':8080/api/appx/packagemanager/packages';
@@ -272,7 +383,7 @@ export class IotDevice
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
         let iotDevice = new IotDevice();
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var appxInfo :any = config.get('AppxInfo', '');
@@ -338,7 +449,7 @@ export class IotDevice
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
         let iotDevice = new IotDevice();
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var url = 'http://' + host + ':8080/api/iot/processmanagement/runcommand?command=' + new Buffer(command).toString('base64') + '&runasdefaultaccount=false' ;
@@ -363,13 +474,61 @@ export class IotDevice
             });
         });
     }
-        
+
+    public RunRemoteScript()
+    {
+        var iotHost :string;
+        var iotUser :string;
+        var iotPassword: string;
+        this.GetHost().then( (host:string)=>{
+            iotHost = host;
+            return this.GetUserName();
+        }).then( (userName:string) => {
+            iotUser = userName;
+            return this.GetPassword();
+        }).then( (password: string) => {
+            iotPassword = password;
+            return this.GetDeviceInfo(iotHost, iotUser, iotPassword);
+        }).then ( (info) => {
+            var appxDetail = null;
+            if (
+                (info.Platform.startsWith("Virtual Machine") ||
+                (info.Platform.startsWith("Minnowboard"))
+            {
+                appxDetail = appx.x86;
+            }
+            else if (
+                (info.Platform.startsWith("Raspberry Pi") ||
+                (info.Platform.startsWith("SBC"))
+            {
+                appxDetail = appx.arm;
+            }
+
+            iotOutputChannel.show();
+            iotOutputChannel.appendLine('Run Remote Script:');
+            if (appxDetail != null)
+            {
+                iotOutputChannel.appendLine( 'package=' + appxDetail.package );
+                iotOutputChannel.appendLine( 'certificate=' + appxDetail.package );
+                iotOutputChannel.appendLine( 'dependencies=' );
+                appxDetail.dependencies.forEach(dep => {
+                    iotOutputChannel.appendLine( "  " + dep );
+                });
+                iotOutputChannel.appendLine( '' );
+            }
+            else
+            {
+                iotOutputChannel.appendLine('Platform not recognized');
+            }
+        });
+    }
+
     public StartApp()
     {
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
         let iotDevice = new IotDevice();
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var packageRelativeId :string = config.get('AppxInfo.PackageRelativeId', '');
@@ -393,7 +552,8 @@ export class IotDevice
             var req = request.post(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
+                    iotOutputChannel.appendLin
+                    e(err.message);
                     iotOutputChannel.appendLine( '' );
                 } else {
                     iotOutputChannel.appendLine('Application Started');
@@ -408,7 +568,7 @@ export class IotDevice
         var config = vscode.workspace.getConfiguration('iot');
         var host :string;
         let iotDevice = new IotDevice();
-        this.getHost().then((h:string) => {
+        this.GetHost().then((h:string) => {
             host = h; 
             
             var packageFullName :string = config.get('AppxInfo.PackageFullName', '');

@@ -4,20 +4,27 @@
     "description": "Description of Windows IoT Core extension",
     "version": "0.0.4",
     "publisher": "Microsoft",
+    "license": "TODO: specify license string", 
     "engines": {
         "vscode": "^0.10.10"
     },
     "categories": [
         "Other"
     ],
+    "keywords":
+    [
+        "microsoft", "windows", "iot", "core"
+    ],
     "activationEvents": [
         "onCommand:extension.getDeviceInfo",
         "onCommand:extension.getDeviceName",
+        "onCommand:extension.getExtensionInfo",
         "onCommand:extension.getPackages",
         "onCommand:extension.installPackage",
         "onCommand:extension.listIotCommands",
         "onCommand:extension.setDeviceName",
         "onCommand:extension.runCommand",
+        "onCommand:extension.runRemoteScript",
         "onCommand:extension.startApp",
         "onCommand:extension.stopApp",
         "onCommand:extension.uploadFile"
@@ -39,12 +46,12 @@
                 },
                 "iot.Device.UserName" : {
                     "type": ["string", "null"],
-                    "default": "Administrator",
+                    "default": null,
                     "description": "User name on the target Windows IoT Core device"
                 },
                 "iot.Device.Password" : {
                     "type": ["string", "null"],
-                    "default": "p@ssw0rd",
+                    "default": null,
                     "description": "Password on the target Windows IoT Core device"
                 },
                 "iot.File" : {
@@ -86,43 +93,51 @@
         "commands": 
         [{
             "command": "extension.getDeviceInfo",
-            "title": "Get Device Info"
+            "title": "iot: Get Device Info"
         },
         {
             "command": "extension.getDeviceName",
-            "title": "Get Device Name"
+            "title": "iot: Get Device Name"
+        },
+        {
+            "command": "extension.getExtensionInfo",
+            "title": "iot: Get Extension Info"
         },
         {
             "command": "extension.getPackages",
-            "title": "Get Installed Packages"
+            "title": "iot: Get Installed Packages"
         },
         {
              "command": "extension.installPackage",
-             "title": "Install Package to Device"
+             "title": "iot: Install Package to Device"
         },
         {
             "command": "extension.listIotCommands",
-            "title": "List IoT Extension Commands"
+            "title": "iot: List IoT Extension Commands"
         },
         {
             "command": "extension.runCommand",
-            "title": "Run Command on Device"
+            "title": "iot: Run Command on Device"
+        },
+        {
+            "command": "extension.runRemoteScript",
+            "title": "iot: Run Remote Script"
         },
         {
             "command": "extension.setDeviceName",
-            "title": "Set Device Name"
+            "title": "iot: Set Device Name"
         },
         {
              "command": "extension.startApp",
-             "title": "Start Application on Device"
+             "title": "iot: Start Application on Device"
         },
         {
              "command": "extension.stopApp",
-             "title": "Stop Application on Device"
+             "title": "iot: Stop Application on Device"
         },
         {
              "command": "extension.uploadFile",
-             "title": "Upload File to Device"
+             "title": "iot: Upload File to Device"
         }]
     },
     "scripts": {
