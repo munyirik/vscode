@@ -24,15 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
         var iotHost :string;
         var iotUser :string;
         var iotPassword: string;
-        iotDevice.GetHost().then( (host:string)=>{
-            iotHost = host;
-            return iotDevice.GetUserName();
-        }).then( (userName:string) => {
-            iotUser = userName;
-            return iotDevice.GetPassword();
-        }).then( (password: string) => {
-            iotPassword = password;
-            return iotDevice.GetDeviceInfo(iotHost, iotUser, iotPassword);
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.GetDeviceInfo();
         }).then( (info: any) => {
             iotDevice.PrintDeviceInfo(iotHost, info);
         })
@@ -47,23 +40,24 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposableGetPackages = vscode.commands.registerCommand('extension.getPackages', () => {       
         let iotDevice = new IotDevice();
-        var iotHost :string;
-        var iotUser :string;
-        var iotPassword: string;
-        iotDevice.GetHost().then( (host:string)=>{
-            iotHost = host;
-            return iotDevice.GetUserName();
-        }).then( (userName:string) => {
-            iotUser = userName;
-            return iotDevice.GetPassword();
-        }).then( (password: string) => {
-            iotPassword = password;
-            return iotDevice.GetPackages(iotHost, iotUser, iotPassword);
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.GetPackages();
         }).then( (info: any) => {
-            iotDevice.PrintPackages(iotHost, info);
+            iotDevice.PrintPackages(info);
         })       
     });
     context.subscriptions.push(disposableGetPackages);
+
+    let disposableGetProcessInfo = vscode.commands.registerCommand('extension.getProcessInfo', () => {       
+        let iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.GetProcessInfo();
+        }).then( (info: any) => {
+            iotDevice.PrintProcessInfo(info);
+        })
+        
+    });
+    context.subscriptions.push(disposableGetProcessInfo);
 
     let disposableListIotCommands =  vscode.commands.registerCommand('extension.listIotCommands', () => {
         let iotDevice = new IotDevice();
@@ -73,7 +67,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposableUploadFile = vscode.commands.registerCommand('extension.uploadFile', () => {       
         let iotDevice = new IotDevice();
-        iotDevice.UploadFile();
+        iotDevice.Init().then((b: boolean) => {
+            iotDevice.UploadFile();
+        });
     });
     context.subscriptions.push(disposableUploadFile);
     
@@ -97,13 +93,16 @@ export function activate(context: vscode.ExtensionContext) {
     
     let disposableRunRemoteScript = vscode.commands.registerCommand('extension.runRemoteScript', () => {
         let iotDevice = new IotDevice();
-        iotDevice.RunRemoteScript();
+        iotDevice.Init().then((b :boolean) => {
+            iotDevice.RunRemoteScript();
+        })
     });
     context.subscriptions.push(disposableRunRemoteScript);
 
     let disposableStartApp = vscode.commands.registerCommand('extension.startApp', () => {
         let iotDevice = new IotDevice();
-        iotDevice.StartApp();
+        //iotDevice.StartApp();
+        iotDevice.RunCommand('iotstartup run nodescripthost');
     });
     context.subscriptions.push(disposableStartApp);
 

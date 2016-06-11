@@ -1,150 +1,185 @@
 {
-    "name": "windowsiot",
-    "displayName": "Windows Iot Core Extension for VS Code",
-    "description": "Description of Windows IoT Core extension",
-    "version": "0.0.4",
-    "publisher": "Microsoft",
-    "license": "TODO: specify license string", 
-    "engines": {
-        "vscode": "^0.10.10"
+  "name": "windowsiot",
+  "displayName": "Windows Iot Core Extension for VS Code",
+  "description": "Description of Windows IoT Core extension",
+  "version": "0.0.4",
+  "publisher": "Microsoft",
+  "license": "TODO: specify license string",
+  "engines": {
+    "vscode": "^0.10.10"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "microsoft",
+    "windows",
+    "iot",
+    "core"
+  ],
+  "activationEvents": [
+    "onCommand:extension.getDeviceInfo",
+    "onCommand:extension.getDeviceName",
+    "onCommand:extension.getExtensionInfo",
+    "onCommand:extension.getPackages",
+    "onCommand:extension.getProcessInfo",
+    "onCommand:extension.listIotCommands",
+    "onCommand:extension.setDeviceName",
+    "onCommand:extension.runCommand",
+    "onCommand:extension.runRemoteScript",
+    "onCommand:extension.startApp",
+    "onCommand:extension.stopApp",
+    "onCommand:extension.uploadFile"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "configuration": {
+      "title": "iot configuration",
+      "properties": {
+        "iot.Device.IpAddress": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "IP Address of the target Windows IoT Core device"
+        },
+        "iot.Device.DeviceName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Name of the target Windows IoT Core device"
+        },
+        "iot.Device.UserName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "User name on the target Windows IoT Core device"
+        },
+        "iot.Device.Password": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Password on the target Windows IoT Core device"
+        },
+        "iot.File": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "file to upload"
+        },
+        "iot.AppxInfo.Appx": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Local appx file path"
+        },
+        "iot.AppxInfo.Certificate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Local certificate file path"
+        },
+        "iot.AppxInfo.Dependencies": {
+          "type": "array",
+          "default": null,
+          "description": "Array of local paths to dependencies"
+        },
+        "iot.AppxInfo.PackageFullName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Package Full Name"
+        },
+        "iot.AppxInfo.PackageRelativeId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Package relative id"
+        },
+        "iot.RunCommands": {
+          "type": "array",
+          "title": "List of commands"
+        }
+      }
     },
-    "categories": [
-        "Other"
-    ],
-    "keywords":
-    [
-        "microsoft", "windows", "iot", "core"
-    ],
-    "activationEvents": [
-        "onCommand:extension.getDeviceInfo",
-        "onCommand:extension.getDeviceName",
-        "onCommand:extension.getExtensionInfo",
-        "onCommand:extension.getPackages",
-        "onCommand:extension.listIotCommands",
-        "onCommand:extension.setDeviceName",
-        "onCommand:extension.runCommand",
-        "onCommand:extension.runRemoteScript",
-        "onCommand:extension.startApp",
-        "onCommand:extension.stopApp",
-        "onCommand:extension.uploadFile"
-    ],
-    "main": "./out/src/extension",
-    "contributes": {
-        "configuration": {
-            "title": "iot configuration",
-            "properties": {
-                "iot.Device.IpAddress" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "IP Address of the target Windows IoT Core device"
-                },
-                "iot.Device.DeviceName" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Name of the target Windows IoT Core device"
-                },
-                "iot.Device.UserName" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "User name on the target Windows IoT Core device"
-                },
-                "iot.Device.Password" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Password on the target Windows IoT Core device"
-                },
-                "iot.File" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "file to upload"
-                },
-                "iot.AppxInfo.Appx" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Local appx file path"
-                },
-                "iot.AppxInfo.Certificate" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Local certificate file path"
-                },
-                "iot.AppxInfo.Dependencies" : {
-                    "type": "array",
-                    "default": null,
-                    "description": "Array of local paths to dependencies"
-                },
-                "iot.AppxInfo.PackageFullName" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Package Full Name"
-                },
-                "iot.AppxInfo.PackageRelativeId" : {
-                    "type": ["string", "null"],
-                    "default": null,
-                    "description": "Package relative id"
-                },
-                "iot.RunCommands" : {
-                    "type": "array",
-                    "title": "List of commands"
-                }
-            }
-        },
-        "commands": 
-        [{
-            "command": "extension.getDeviceInfo",
-            "title": "iot: Get Device Info"
-        },
-        {
-            "command": "extension.getDeviceName",
-            "title": "iot: Get Device Name"
-        },
-        {
-            "command": "extension.getExtensionInfo",
-            "title": "iot: Get Extension Info"
-        },
-        {
-            "command": "extension.getPackages",
-            "title": "iot: Get Installed Packages"
-        },
-        {
-            "command": "extension.listIotCommands",
-            "title": "iot: List IoT Extension Commands"
-        },
-        {
-            "command": "extension.runCommand",
-            "title": "iot: Run Command on Device"
-        },
-        {
-            "command": "extension.runRemoteScript",
-            "title": "iot: Run Remote Script"
-        },
-        {
-            "command": "extension.setDeviceName",
-            "title": "iot: Set Device Name"
-        },
-        {
-             "command": "extension.startApp",
-             "title": "iot: Start Application on Device"
-        },
-        {
-             "command": "extension.stopApp",
-             "title": "iot: Stop Application on Device"
-        },
-        {
-             "command": "extension.uploadFile",
-             "title": "iot: Upload File to Device"
-        }]
-    },
-    "scripts": {
-        "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
-        "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install"
-    },
-    "dependencies": {
-        "request": "^2.72.0"
-    },
-    "devDependencies": {
-        "typescript": "^1.8.5",
-        "vscode": "^0.11.0"
-    }
+    "commands": [
+      {
+        "command": "extension.getDeviceInfo",
+        "title": "iot: Get Device Info"
+      },
+      {
+        "command": "extension.getDeviceName",
+        "title": "iot: Get Device Name"
+      },
+      {
+        "command": "extension.getExtensionInfo",
+        "title": "iot: Get Extension Info"
+      },
+      {
+        "command": "extension.getPackages",
+        "title": "iot: Get Installed Packages"
+      },
+      {
+        "command": "extension.getProcessInfo",
+        "title": "iot: Get Process Info"
+      },
+      {
+        "command": "extension.listIotCommands",
+        "title": "iot: List IoT Extension Commands"
+      },
+      {
+        "command": "extension.runCommand",
+        "title": "iot: Run Command on Device"
+      },
+      {
+        "command": "extension.runRemoteScript",
+        "title": "iot: Run Remote Script"
+      },
+      {
+        "command": "extension.setDeviceName",
+        "title": "iot: Set Device Name"
+      },
+      {
+        "command": "extension.startApp",
+        "title": "iot: Start Application on Device"
+      },
+      {
+        "command": "extension.stopApp",
+        "title": "iot: Stop Application on Device"
+      },
+      {
+        "command": "extension.uploadFile",
+        "title": "iot: Upload File to Device"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "dependencies": {
+    "request": "^2.72.0"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.5",
+    "vscode": "^0.11.0"
+  }
 }
