@@ -170,6 +170,10 @@
       }
     ]
   },
+  "keybindings": [{
+    "command": "extension.runRemoteScript",
+    "key": "f5"
+  }],
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
     "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",

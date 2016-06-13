@@ -572,36 +572,41 @@ export class IotDevice
     public RunCommandFromSettings()
     {
         // TODO: show pick list of commands from config file
-        this.RunCommand('icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F');
+        var command :string = 'icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F';
+
+        iotOutputChannel.show();
+        iotOutputChannel.appendLine(`Running ${command}`)           
+        this.RunCommand(command).then((resp) => {
+            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
+            iotOutputChannel.appendLine( '' );
+        })
     }
     
-    public RunCommand(command: string)
+    public RunCommand(command: string) :Thenable<any>
     {
-        var config = vscode.workspace.getConfiguration('iot');
-        var host :string;
-        let iotDevice = new IotDevice();
-        this.GetHost().then((h:string) => {
-            host = h; 
-            
-            var url = 'http://' + host + ':8080/api/iot/processmanagement/runcommand?command=' + new Buffer(command).toString('base64') + '&runasdefaultaccount=false' ;
-            console.log ('url=' + url)
+        return new Promise<any> ((resolve, reject) => {
+            var config = vscode.workspace.getConfiguration('iot');
+            var host :string;
+            let iotDevice = new IotDevice();
+            this.GetHost().then((h:string) => {
+                host = h; 
+                
+                var url = 'http://' + host + ':8080/api/iot/processmanagement/runcommand?command=' + new Buffer(command).toString('base64') + '&runasdefaultaccount=false' ;
+                console.log ('url=' + url)
 
-            var param = {'auth': {
-                'user': config.get("Device.UserName"),
-                'pass': config.get("Device.Password")
-            }};
+                var param = {'auth': {
+                    'user': config.get("Device.UserName"),
+                    'pass': config.get("Device.Password")
+                }};
 
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Running ${command}`)
-            var req = request.post(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                } else {
-                    iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
-                    iotOutputChannel.appendLine( '' );
-                }
+                var req = request.post(url, param, function (err, resp, body) {
+                    if (err){
+                        console.log(err.message);
+                        reject(err);
+                    } else {
+                        resolve(resp);
+                    }
+                });
             });
         });
     }
@@ -648,12 +653,13 @@ export class IotDevice
             {
                 let ext = vscode.extensions.getExtension('Microsoft.windowsiot');
                 iotOutputChannel.appendLine('ext.extensionPath=' + ext.extensionPath);
-                return this.InstallPackage(iotAppxDetail, ext.extensionPath + '\\appx\\' + architecture + '\\');
+                return this.InstallPackage(iotAppxDetail, ext.extensionPath + '\\appx\\' + architecture + '-appx\\');
             }
             else{
-                // TODO: stop nodescripthost here
                 iotOutputChannel.appendLine('NodeScriptHost is already installed');
-                return this.Delay(1, true);
+                var command = 'iotstartup stop nodescripthost';
+                iotOutputChannel.appendLine(`Running ${command}`)           
+                return this.RunCommand(command);
             }
         }).then((resp: any) => { 
             // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
@@ -661,16 +667,27 @@ export class IotDevice
         }).then((b: boolean) => {
             // TODO: get files to upload from project
             iotOutputChannel.appendLine('uploading file');
-            return this.UploadFileToPackage(iotAppxDetail.packagefullname, "f:\\test\\hello\\server.js");
+            return this.UploadFileToPackage(iotAppxDetail.packagefullname, "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js");
         }).then((resp: any) => {
             iotOutputChannel.appendLine('statusCode='+resp.statusCode);
             iotOutputChannel.appendLine('statusMessage='+resp.statusMessage);
             iotOutputChannel.appendLine('activating...');
+            var command = 'icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F';
+            iotOutputChannel.appendLine(`Running ${command}`)           
+            return this.RunCommand(command);
+        }).then((resp:any) => {
+            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
+            iotOutputChannel.appendLine( '' );
+            var command = 'iotstartup run nodescripthost';
+            iotOutputChannel.appendLine(`Running ${command}`)           
+            return this.RunCommand(command);
         // TODO: fix this?
         //     return this.ActivateApplication(iotAppxDetail.packagefullname);
         // }).then((b: boolean) => {
-            // TODO: launch browser to view changes? or http-get and log results?
-            this.RunCommand('iotstartup run nodescripthost');
+            // TODO: launch browser to view changes? or http-get and log results?\
+        }).then((resp:any) => {
+            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
+            iotOutputChannel.appendLine( '' );
             iotOutputChannel.appendLine('Done?');
         });
     }
