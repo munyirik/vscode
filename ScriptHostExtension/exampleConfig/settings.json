@@ -8,16 +8,6 @@
             "Password": "p@ssw0rd"
         },
         "File": "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js",
-        "AppxInfo": {
-            "Appx" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.appx",
-            "Certificate" : "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\NodeScriptHost_1.0.0.0_x86.cer",
-            "Dependencies" :
-            [
-                "\\\\scratch2\\scratch\\paulmon\\appx\\NodeScriptHost_1.0.0.0_x86_Test\\Dependencies\\x86\\Microsoft.VCLibs.x86.14.00.appx"
-            ],
-            "PackageFullName": "NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
-            "PackageRelativeId" : "NodeScriptHost_dnsz84vs3g3zp!App"
-        },
         "RunCommands": [
             "c:\\test\\TakeRegistryAdminOwnership.exe MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service",
             "reg add HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service /v RequireDevUnlock /t REG_DWORD /d 0"

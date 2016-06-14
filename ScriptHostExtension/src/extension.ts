@@ -99,16 +99,19 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableRunRemoteScript);
 
-    let disposableStartApp = vscode.commands.registerCommand('extension.startApp', () => {
+    let disposableStartNodeScriptHostopApp = vscode.commands.registerCommand('extension.startNodeScriptHost', () => {
         let iotDevice = new IotDevice();
-        //iotDevice.StartApp();
-        iotDevice.RunCommand('iotstartup run nodescripthost');
+        iotDevice.Init().then((b: boolean) =>{
+            iotDevice.StartNodeScriptHost();
+        })
     });
-    context.subscriptions.push(disposableStartApp);
+    context.subscriptions.push(disposableStartNodeScriptHostopApp);
 
     let disposableStopApp = vscode.commands.registerCommand('extension.stopApp', () => {
         let iotDevice = new IotDevice();
-        iotDevice.StopApp();
+        iotDevice.Init().then((b: boolean) => {
+            iotDevice.StopApp();
+        });
     });
     context.subscriptions.push(disposableStopApp);
 }

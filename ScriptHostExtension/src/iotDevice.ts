@@ -77,6 +77,14 @@ export class IotDevice
         });
     }
 
+    public ArchitectureFromDeviceInfo(info: any) :string
+    {
+            var osVersionTokens = info.OsVersion.split('.');
+            var architecture = osVersionTokens[2];
+            architecture = architecture.substr(0,architecture.length-3);
+            return architecture;
+    }
+
     public GetHost() : Thenable<string>
     {
         var config = vscode.workspace.getConfiguration('iot');
@@ -214,7 +222,7 @@ export class IotDevice
             {
                 iotOutputChannel.appendLine( 'architecture=' + architecture );
                 iotOutputChannel.appendLine( 'package=' + appxDetail.package );
-                iotOutputChannel.appendLine( 'certificate=' + appxDetail.package );
+                iotOutputChannel.appendLine( 'certificate=' + appxDetail.certificate );
                 iotOutputChannel.appendLine( 'dependencies=' );
                 appxDetail.dependencies.forEach(dep => {
                     iotOutputChannel.appendLine( "  " + dep );
@@ -405,12 +413,17 @@ export class IotDevice
             return;
         }
 
-        var packageFullName = config.get('AppxInfo.PackageFullName');
-
         iotOutputChannel.show();
         iotOutputChannel.appendLine( `Uploading file ${iotfile} ...` );
 
-        this.UploadFileToPackage(packageFullName, iotfile).then((res:any) => {
+        var architecture: string;
+
+        return this.GetDeviceInfo().then((info) => {
+            architecture = this.ArchitectureFromDeviceInfo(info);
+            return this.GetAppxInfo(architecture);
+        }).then ((appxDetail) => {
+            return this.UploadFileToPackage(appxDetail.packagefullname, iotfile);
+        }).then((res:any) => {
             iotOutputChannel.appendLine(`Successfully uploaded ${iotfile}`)
             iotOutputChannel.appendLine( '' );
         })
@@ -536,20 +549,24 @@ export class IotDevice
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
+                    reject(err);
                 } else {
                     if (resp.statusCode == 200)
                     {
                         iotOutputChannel.appendLine(`Successfully installed ${appxFile}`);
+                        resolve(resp);
                     }
                     else if (resp.statusCode == 202)
                     {
                         var info = JSON.parse(body);
                         iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
+                        resolve(resp);
                     }
                     else
                     {
                         iotOutputChannel.appendLine('message=' + resp.statusMessage);
                         iotOutputChannel.appendLine('status=' + resp.statusCode);
+                        reject(resp);
                     }
                     iotOutputChannel.appendLine( '' );
                 }
@@ -558,7 +575,6 @@ export class IotDevice
             
             form.append(appxFile, fs.createReadStream(appxPath));
             form.append(certFile, fs.createReadStream(certPath));
-            //var dependencies :any = appxInfo.dependencies;
             appxInfo.dependencies.forEach(dependency => {
                 var depFile = this.FileFromPath(appxFolder + dependency);
                 var depPath = appxFolder + dependency;
@@ -637,11 +653,8 @@ export class IotDevice
         iotOutputChannel.show();
         iotOutputChannel.appendLine('Run Remote Script:');
 
-        // TODO: GetArchitecture?
         return this.GetDeviceInfo().then((info) => {
-            var osVersionTokens = info.OsVersion.split('.');
-            architecture = osVersionTokens[2];
-            architecture = architecture.substr(0,architecture.length-3);
+            architecture = this.ArchitectureFromDeviceInfo(info);
             return this.GetAppxInfo(architecture);
         }).then ((appxDetail) => {
             iotAppxDetail = appxDetail;
@@ -678,15 +691,9 @@ export class IotDevice
         }).then((resp:any) => {
             iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
             iotOutputChannel.appendLine( '' );
-            var command = 'iotstartup run nodescripthost';
-            iotOutputChannel.appendLine(`Running ${command}`)           
-            return this.RunCommand(command);
-        // TODO: fix this?
-        //     return this.ActivateApplication(iotAppxDetail.packagefullname);
-        // }).then((b: boolean) => {
+            return this.ActivateApplication(iotAppxDetail.packagefullname);
+        }).then((b: boolean) => {
             // TODO: launch browser to view changes? or http-get and log results?\
-        }).then((resp:any) => {
-            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
             iotOutputChannel.appendLine( '' );
             iotOutputChannel.appendLine('Done?');
         });
@@ -695,8 +702,6 @@ export class IotDevice
     public ActivateApplication(packageFullName: string) : Thenable<boolean>
     {
         return new Promise ((resolve, reject) => {
-            var config = vscode.workspace.getConfiguration('iot');
-                
             var url = 'http://' + this.host + ':8080/api/iot/appx/app?appid=' + new Buffer(packageFullName).toString('base64');
             console.log ('url=' + url)
 
@@ -722,70 +727,44 @@ export class IotDevice
         });
     }
     
-    public StartApp()
+    public StartNodeScriptHost()
     {
-        var config = vscode.workspace.getConfiguration('iot');
-        var host :string;
-        this.GetHost().then((h:string) => {
-            host = h; 
-            
-            var packageRelativeId :string = config.get('AppxInfo.PackageRelativeId', '');
-            if (!packageRelativeId)
-            {
-                console.log("iot.AppxInfo.PackageRelativeId is null");
-                vscode.window.showErrorMessage('Please specify iot.AppxInfo.PackageRelativeId in workspace settings');
-                return;
-            }
+        var iotAppxDetail :any;
+        var architecture: string;
 
-            var url = 'http://' + host + ':8080/api/taskmanager/app?appid=' + new Buffer(packageRelativeId).toString('base64');
-            console.log ('url=' + url)
+        iotOutputChannel.show();
+        iotOutputChannel.appendLine('Run Remote Script:');
 
-            var param = {'auth': {
-                'user': config.get("Device.UserName"),
-                'pass': config.get("Device.Password")
-            }};
+        return this.GetDeviceInfo().then((info) => {
+            architecture = this.ArchitectureFromDeviceInfo(info);
+            return this.GetAppxInfo(architecture);
+        }).then ((appxDetail) => {
+            iotAppxDetail = appxDetail;
+            return this.ActivateApplication(iotAppxDetail.packagefullname);
+        }).then ((b: boolean) => {
 
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Starting ${packageRelativeId}`);
-            var req = request.post(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                } else {
-                    iotOutputChannel.appendLine('Application Started');
-                    iotOutputChannel.appendLine( '' );
-                }
-            });
-        });
+        })
     }
-    
+
     public StopApp()
     {
-        var config = vscode.workspace.getConfiguration('iot');
-        var host :string;
-        let iotDevice = new IotDevice();
-        this.GetHost().then((h:string) => {
-            host = h; 
-            
-            var packageFullName :string = config.get('AppxInfo.PackageFullName', '');
-            if (!packageFullName)
-            {
-                console.log("iot.AppxInfo.PackageFullName is null");
-                vscode.window.showErrorMessage('Please specify iot.AppxInfo.PackageFullName in workspace settings');
-                return;
-            }
+        var architecture: string;
 
-            var url = 'http://' + host + ':8080/api/taskmanager/app?package=' + new Buffer(packageFullName).toString('base64');
+        return this.GetDeviceInfo().then((info) => {
+            architecture = this.ArchitectureFromDeviceInfo(info);
+            return this.GetAppxInfo(architecture);
+        }).then ((appxDetail) => {
+            // TODO: is this correct for headless apps?
+            var url = 'http://' + this.host + ':8080/api/taskmanager/app?package=' + new Buffer(appxDetail.packagefullname).toString('base64');
             console.log ('url=' + url)
 
             var param = {'auth': {
-                'user': config.get("Device.UserName"),
-                'pass': config.get("Device.Password")
+                'user': this.user,
+                'pass': this.password
             }};
 
             iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Stopping ${packageFullName}`);
+            iotOutputChannel.appendLine(`Stopping ${appxDetail.packagefullname}`);
             var req = request.delete(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
