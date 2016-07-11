@@ -676,21 +676,18 @@ export class IotDevice
             }
         }).then((resp: any) => { 
             // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
-            return this.Delay(1000, true);
+            // TODO: use websocket to get install state?
+            iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
+            iotOutputChannel.appendLine( '' );
+            return this.Delay(30000, true);
         }).then((b: boolean) => {
             // TODO: get files to upload from project
             iotOutputChannel.appendLine('uploading file');
             return this.UploadFileToPackage(iotAppxDetail.packagefullname, "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js");
         }).then((resp: any) => {
-            iotOutputChannel.appendLine('statusCode='+resp.statusCode);
-            iotOutputChannel.appendLine('statusMessage='+resp.statusMessage);
-            iotOutputChannel.appendLine('activating...');
-            var command = 'icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F';
-            iotOutputChannel.appendLine(`Running ${command}`)           
-            return this.RunCommand(command);
-        }).then((resp:any) => {
             iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
             iotOutputChannel.appendLine( '' );
+            iotOutputChannel.appendLine('activating...');
             return this.ActivateApplication(iotAppxDetail.packagefullname);
         }).then((b: boolean) => {
             // TODO: launch browser to view changes? or http-get and log results?\
