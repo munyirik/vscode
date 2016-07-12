@@ -48,12 +48,24 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetPackages);
 
+    let disposableGetAppxProcessInfo = vscode.commands.registerCommand('extension.getAppxProcessInfo', () => {       
+        let iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.GetProcessInfo();
+        }).then( (info: any) => {
+            iotDevice.PrintProcessInfo(info, true);
+        })
+        
+    });
+
+    context.subscriptions.push(disposableGetAppxProcessInfo);
+
     let disposableGetProcessInfo = vscode.commands.registerCommand('extension.getProcessInfo', () => {       
         let iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetProcessInfo();
         }).then( (info: any) => {
-            iotDevice.PrintProcessInfo(info);
+            iotDevice.PrintProcessInfo(info, false);
         })
         
     });
@@ -107,13 +119,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableStartNodeScriptHostopApp);
 
-    let disposableStopApp = vscode.commands.registerCommand('extension.stopApp', () => {
+    let disposableStopNodeScriptHost = vscode.commands.registerCommand('extension.stopNodeScriptHost', () => {
         let iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
-            iotDevice.StopApp();
+            iotDevice.StopNodeScriptHost();
         });
     });
-    context.subscriptions.push(disposableStopApp);
+    context.subscriptions.push(disposableStopNodeScriptHost);
 }
 
 // this method is called when your extension is deactivated

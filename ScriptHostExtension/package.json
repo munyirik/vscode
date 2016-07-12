@@ -18,6 +18,7 @@
     "core"
   ],
   "activationEvents": [
+    "onCommand:extension.getAppxProcessInfo",
     "onCommand:extension.getDeviceInfo",
     "onCommand:extension.getDeviceName",
     "onCommand:extension.getExtensionInfo",
@@ -28,7 +29,7 @@
     "onCommand:extension.runCommand",
     "onCommand:extension.runRemoteScript",
     "onCommand:extension.startNodeScriptHost",
-    "onCommand:extension.stopApp",
+    "onCommand:extension.stopNodeScriptHost",
     "onCommand:extension.uploadFile"
   ],
   "main": "./out/src/extension",
@@ -84,6 +85,10 @@
     },
     "commands": [
       {
+        "command": "extension.getAppxProcessInfo",
+        "title": "iot: Get APPX Process Info"
+      },
+      {
         "command": "extension.getDeviceInfo",
         "title": "iot: Get Device Info"
       },
@@ -124,8 +129,8 @@
         "title": "iot: Start Node Script Host"
       },
       {
-        "command": "extension.stopApp",
-        "title": "iot: Stop Application on Device"
+        "command": "extension.stopNodeScriptHost",
+        "title": "iot: Stop Node Script Host"
       },
       {
         "command": "extension.uploadFile",
@@ -133,16 +138,19 @@
       }
     ]
   },
-  "keybindings": [{
-    "command": "extension.runRemoteScript",
-    "key": "f5"
-  }],
+  "keybindings": [
+    {
+      "command": "extension.runRemoteScript",
+      "key": "f5"
+    }
+  ],
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
     "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "dependencies": {
+    "delay": "^1.3.1",
     "request": "^2.72.0"
   },
   "devDependencies": {

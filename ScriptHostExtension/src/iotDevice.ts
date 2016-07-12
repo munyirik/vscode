@@ -1,6 +1,6 @@
 'use strict';
 import fs = require('fs');
-//import delayed = require('delayed');
+const delay = require('delay');
 
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
@@ -44,6 +44,7 @@ export class IotDevice
     private host: string;
     private user: string;
     private password: string;
+    //private socket: any;
     
     constructor()
     {
@@ -67,16 +68,6 @@ export class IotDevice
         });
     }
     
-    public Delay(ms, data:any) : Thenable<any>
-    {
-        return new Promise((resolve,reject)=>{
-            setTimeout(function(){
-                iotOutputChannel.appendLine('Delaying ' + ms + ' ms');
-                resolve(data); 
-            }, 1000);
-        });
-    }
-
     public ArchitectureFromDeviceInfo(info: any) :string
     {
             var osVersionTokens = info.OsVersion.split('.');
@@ -501,23 +492,39 @@ export class IotDevice
         });
     }
 
-    public PrintProcessInfo(info: any)
+    public PrintProcessInfo(info: any, appxOnly: boolean)
     {
         iotOutputChannel.show();
-        iotOutputChannel.appendLine( 'iot: Get Installed Packages:');
-        iotOutputChannel.appendLine( 'Device=' + this.host );
-        iotOutputChannel.appendLine( '');
-        info.Processes.forEach(proc => {
-            iotOutputChannel.appendLine( 'CPUUsage: ' + proc.CPUUsage );
-            iotOutputChannel.appendLine( 'ImageName: ' + proc.ImageName );
-            iotOutputChannel.appendLine( 'PageFileUsage: ' + proc.PageFileUsage );
-            iotOutputChannel.appendLine( 'PrivateWorkingSet: ' + proc.PrivateWorkingSet );
-            iotOutputChannel.appendLine( 'ProcessId: ' + proc.ProcessId );
-            iotOutputChannel.appendLine( 'SessionId: ' + proc.SessionId );
-            iotOutputChannel.appendLine( 'UserName: ' + proc.UserName );
-            iotOutputChannel.appendLine( 'VirtualSize: ' + proc.VirtualSize );
-            iotOutputChannel.appendLine( 'WorkingSetSize: ' + proc.WorkingSetSize );
+        if (appxOnly){
+            // iotOutputChannel.appendLine( 'iot: Get APPX Process Info:');
+        }
+        else{
+            iotOutputChannel.appendLine( 'iot: Get Process Info:');
+            iotOutputChannel.appendLine( 'Device=' + this.host );
             iotOutputChannel.appendLine( '');
+        }
+        info.Processes.forEach(proc => {
+            if (!appxOnly || proc.PackageFullName) 
+            {
+                if (proc.AppName) iotOutputChannel.appendLine( 'AppName: ' + proc.AppName );
+                if (proc.PackageFullName) iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName );
+                if (!appxOnly)
+                {              
+                    if (proc.IsRunning) iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning );
+                    if (proc.Publisher) iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher );
+                    if (proc.Version) iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build);
+                    iotOutputChannel.appendLine( 'CPUUsage: ' + proc.CPUUsage );
+                    iotOutputChannel.appendLine( 'ImageName: ' + proc.ImageName );
+                    iotOutputChannel.appendLine( 'PageFileUsage: ' + proc.PageFileUsage );
+                    iotOutputChannel.appendLine( 'PrivateWorkingSet: ' + proc.PrivateWorkingSet );
+                    iotOutputChannel.appendLine( 'ProcessId: ' + proc.ProcessId );
+                    iotOutputChannel.appendLine( 'SessionId: ' + proc.SessionId );
+                    iotOutputChannel.appendLine( 'UserName: ' + proc.UserName );
+                    iotOutputChannel.appendLine( 'VirtualSize: ' + proc.VirtualSize );
+                    iotOutputChannel.appendLine( 'WorkingSetSize: ' + proc.WorkingSetSize );
+                }
+                iotOutputChannel.appendLine( '');
+            }
         });
     }
     
@@ -656,12 +663,15 @@ export class IotDevice
         return this.GetDeviceInfo().then((info) => {
             architecture = this.ArchitectureFromDeviceInfo(info);
             return this.GetAppxInfo(architecture);
-        }).then ((appxDetail) => {
+        })
+        .then ((appxDetail) => {
             iotAppxDetail = appxDetail;
             return this.GetPackages();
-        }).then ((info: any) => {
+        })
+        .then ((info: any) => {
             return this.IsInstalled(info, iotAppxDetail.id);
-        }).then((installed: boolean)=>{
+        })
+        .then((installed: boolean)=>{
             if (!installed)
             {
                 let ext = vscode.extensions.getExtension('Microsoft.windowsiot');
@@ -670,33 +680,58 @@ export class IotDevice
             }
             else{
                 iotOutputChannel.appendLine('NodeScriptHost is already installed');
-                var command = 'iotstartup stop nodescripthost';
-                iotOutputChannel.appendLine(`Running ${command}`)           
-                return this.RunCommand(command);
+                //var command = 'iotstartup stop nodescripthost';
+                //iotOutputChannel.appendLine(`Running ${command}`)           
+                //return this.RunCommand(command);
+                return this.StopAppx(iotAppxDetail.packagefullname);
             }
-        }).then((resp: any) => { 
+        })
+        .then(delay(3000))
+        .then((resp: any) => { 
             // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
             // TODO: use websocket to get install state?
             iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
             iotOutputChannel.appendLine( '' );
-            return this.Delay(30000, true);
-        }).then((b: boolean) => {
+            return this.GetProcessInfo();
+        }).then( (info: any) => {
+            return new Promise<boolean>((resolve,reject) => {
+                this.PrintProcessInfo(info, true);
+                resolve(true);
+            });        
+        })
+        .then(delay(1000))
+        .then((b: boolean) => {
             // TODO: get files to upload from project
             iotOutputChannel.appendLine('uploading file');
             return this.UploadFileToPackage(iotAppxDetail.packagefullname, "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js");
-        }).then((resp: any) => {
+        })
+        .then((resp: any) => {
             iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
             iotOutputChannel.appendLine( '' );
             iotOutputChannel.appendLine('activating...');
             return this.ActivateApplication(iotAppxDetail.packagefullname);
-        }).then((b: boolean) => {
+        })
+        .then(delay(3000))
+        .then((resp: any) => { 
+            // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
+            // TODO: use websocket to get install state?
+            iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
+            iotOutputChannel.appendLine( '' );
+            return this.GetProcessInfo();
+        }).then( (info: any) => {
+            return new Promise<boolean>((resolve,reject) => {
+                this.PrintProcessInfo(info, true);
+                resolve(true);
+            });        
+        })
+        .then((b: boolean) => {
             // TODO: launch browser to view changes? or http-get and log results?\
             iotOutputChannel.appendLine( '' );
-            iotOutputChannel.appendLine('Done?');
+            iotOutputChannel.appendLine('Done.');
         });
     }
 
-    public ActivateApplication(packageFullName: string) : Thenable<boolean>
+    public ActivateApplication(packageFullName: string) : Thenable<any>
     {
         return new Promise ((resolve, reject) => {
             var url = 'http://' + this.host + ':8080/api/iot/appx/app?appid=' + new Buffer(packageFullName).toString('base64');
@@ -718,7 +753,7 @@ export class IotDevice
                 } else {
                     iotOutputChannel.appendLine('Application Started');
                     iotOutputChannel.appendLine( '' );
-                    resolve(true);
+                    resolve(resp);
                 }
             });
         });
@@ -738,21 +773,16 @@ export class IotDevice
         }).then ((appxDetail) => {
             iotAppxDetail = appxDetail;
             return this.ActivateApplication(iotAppxDetail.packagefullname);
-        }).then ((b: boolean) => {
+        }).then ((resp: any) => {
 
         })
     }
 
-    public StopApp()
+    public StopAppx(packageFullName :string) : Thenable<any>
     {
-        var architecture: string;
-
-        return this.GetDeviceInfo().then((info) => {
-            architecture = this.ArchitectureFromDeviceInfo(info);
-            return this.GetAppxInfo(architecture);
-        }).then ((appxDetail) => {
+        return new Promise<any> ((resolve, reject) =>{
             // TODO: is this correct for headless apps?
-            var url = 'http://' + this.host + ':8080/api/taskmanager/app?package=' + new Buffer(appxDetail.packagefullname).toString('base64');
+            var url = 'http://' + this.host + ':8080/api/taskmanager/app?package=' + new Buffer(packageFullName).toString('base64');
             console.log ('url=' + url)
 
             var param = {'auth': {
@@ -761,17 +791,33 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Stopping ${appxDetail.packagefullname}`);
+            iotOutputChannel.appendLine(`Stopping ${packageFullName}`);
             var req = request.delete(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
                     iotOutputChannel.appendLine( '' );
+                    reject(err);
                 } else {
                     iotOutputChannel.appendLine('Application Stopped');
                     iotOutputChannel.appendLine( '' );
+                    resolve(resp);
                 }
             });
+        });
+    }
+
+    public StopNodeScriptHost() 
+    {
+        var architecture: string;
+
+        return this.GetDeviceInfo().then((info) => {
+            architecture = this.ArchitectureFromDeviceInfo(info);
+            return this.GetAppxInfo(architecture);
+        }).then ((appxDetail) => {
+            return this.StopAppx(appxDetail.packagefullname);
+        }).then ((resp: any) => {
+            //iotOutputChannel.show();
         });
     }
 }
