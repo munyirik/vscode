@@ -40,16 +40,12 @@ var appx = {
 
 export class IotDevice
 {
-    //private outputChannel : vscode.OutputChannel;
     private host: string;
     private user: string;
     private password: string;
-    //private socket: any;
     
     constructor()
     {
-        // todo: why aren't lambas inside class declarations in class scope?
-        //this.outputChannel = vscode.window.createOutputChannel('IoT');
     }
 
     public Init() : Thenable<boolean>
@@ -680,9 +676,6 @@ export class IotDevice
             }
             else{
                 iotOutputChannel.appendLine('NodeScriptHost is already installed');
-                //var command = 'iotstartup stop nodescripthost';
-                //iotOutputChannel.appendLine(`Running ${command}`)           
-                //return this.RunCommand(command);
                 return this.StopAppx(iotAppxDetail.packagefullname);
             }
         })
@@ -692,6 +685,21 @@ export class IotDevice
             // TODO: use websocket to get install state?
             iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
             iotOutputChannel.appendLine( '' );
+            return this.GetPackages();
+        })
+        .then((info: any) => {
+            return this.IsInstalled(info, iotAppxDetail.id);
+        })
+        .then((installed: boolean)=>{
+            if (!installed)
+            {
+                return delay(10000);
+            }
+            else{
+                return delay(1);
+            }
+        })
+        .then((installed:boolean) => {
             return this.GetProcessInfo();
         }).then( (info: any) => {
             return new Promise<boolean>((resolve,reject) => {
