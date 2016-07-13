@@ -207,14 +207,14 @@ export class IotDevice
 
             if (appxDetail != null)
             {
-                iotOutputChannel.appendLine( 'architecture=' + architecture );
-                iotOutputChannel.appendLine( 'package=' + appxDetail.package );
-                iotOutputChannel.appendLine( 'certificate=' + appxDetail.certificate );
-                iotOutputChannel.appendLine( 'dependencies=' );
+                console.log( 'architecture=' + architecture );
+                console.log( 'package=' + appxDetail.package );
+                console.log( 'certificate=' + appxDetail.certificate );
+                console.log( 'dependencies=' );
                 appxDetail.dependencies.forEach(dep => {
-                    iotOutputChannel.appendLine( "  " + dep );
+                    console.log( "  " + dep );
                 });
-                iotOutputChannel.appendLine( '' );
+                console.log( '' );
                 resolve(appxDetail);
             }
             else
@@ -488,6 +488,14 @@ export class IotDevice
         });
     }
 
+    public PrintProcessInfoToConsole(info: any)
+    {
+        info.Processes.forEach(proc => {
+            if (proc.PackageFullName) console.log( proc.PackageFullName );
+        });
+        console.log('');
+    }
+
     public PrintProcessInfo(info: any, appxOnly: boolean)
     {
         iotOutputChannel.show();
@@ -541,11 +549,11 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
-            iotOutputChannel.appendLine('Installing Appx Package');
-            iotOutputChannel.appendLine('appxPath='+appxPath);
-            iotOutputChannel.appendLine('appxFile='+appxFile);
-            iotOutputChannel.appendLine('certPath='+certPath);
-            iotOutputChannel.appendLine('certFile='+certFile);
+            iotOutputChannel.appendLine('Installing Appx Package...');
+            console.log('appxPath='+appxPath);
+            console.log('appxFile='+appxFile);
+            console.log('certPath='+certPath);
+            console.log('certFile='+certFile);
 
             var req = request.post(url, param, function (err, resp, body) {
                 if (err){
@@ -562,7 +570,8 @@ export class IotDevice
                     else if (resp.statusCode == 202)
                     {
                         var info = JSON.parse(body);
-                        iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
+                        console.log(info.Reason);
+                        console.log('status=' + resp.statusCode);
                         resolve(resp);
                     }
                     else
@@ -571,7 +580,7 @@ export class IotDevice
                         iotOutputChannel.appendLine('status=' + resp.statusCode);
                         reject(resp);
                     }
-                    iotOutputChannel.appendLine( '' );
+                    console.log( '' );
                 }
             });
             var form = req.form();
@@ -581,8 +590,8 @@ export class IotDevice
             appxInfo.dependencies.forEach(dependency => {
                 var depFile = this.FileFromPath(appxFolder + dependency);
                 var depPath = appxFolder + dependency;
-                iotOutputChannel.appendLine('depFile='+depFile);
-                iotOutputChannel.appendLine('depPath='+depPath);
+                console.log('depFile='+depFile);
+                console.log('depPath='+depPath);
                 form.append(depFile, fs.createReadStream(depPath));
             })
         });
@@ -671,7 +680,7 @@ export class IotDevice
             if (!installed)
             {
                 let ext = vscode.extensions.getExtension('Microsoft.windowsiot');
-                iotOutputChannel.appendLine('ext.extensionPath=' + ext.extensionPath);
+                console.log('ext.extensionPath=' + ext.extensionPath);
                 return this.InstallPackage(iotAppxDetail, ext.extensionPath + '\\appx\\' + architecture + '-appx\\');
             }
             else{
@@ -683,8 +692,8 @@ export class IotDevice
         .then((resp: any) => { 
             // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
             // TODO: use websocket to get install state?
-            iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
-            iotOutputChannel.appendLine( '' );
+            console.log(`response.statusCode=${resp.statusCode}`);
+            console.log( '' );
             return this.GetPackages();
         })
         .then((info: any) => {
@@ -703,39 +712,41 @@ export class IotDevice
             return this.GetProcessInfo();
         }).then( (info: any) => {
             return new Promise<boolean>((resolve,reject) => {
-                this.PrintProcessInfo(info, true);
+                console.log('processes before activation');
+                this.PrintProcessInfoToConsole(info);
                 resolve(true);
             });        
         })
         .then(delay(1000))
         .then((b: boolean) => {
             // TODO: get files to upload from project
-            iotOutputChannel.appendLine('uploading file');
+            iotOutputChannel.appendLine('Uploading file...');
             return this.UploadFileToPackage(iotAppxDetail.packagefullname, "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js");
         })
         .then((resp: any) => {
-            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
-            iotOutputChannel.appendLine( '' );
-            iotOutputChannel.appendLine('activating...');
+            console.log('resp.statusCode=' + resp.statusCode);
+            console.log( '' );
+            iotOutputChannel.appendLine('Starting NodeScriptHost...');
             return this.ActivateApplication(iotAppxDetail.packagefullname);
         })
         .then(delay(3000))
         .then((resp: any) => { 
             // TODO: wait for nodescripthost to finish installing.  How does the apps view update in webb?
             // TODO: use websocket to get install state?
-            iotOutputChannel.appendLine(`response.statusCode=${resp.statusCode}`);
-            iotOutputChannel.appendLine( '' );
+            console.log(`response.statusCode=${resp.statusCode}`);
+            console.log( '' );
             return this.GetProcessInfo();
         }).then( (info: any) => {
             return new Promise<boolean>((resolve,reject) => {
-                this.PrintProcessInfo(info, true);
+                console.log('processes after activation');
+                this.PrintProcessInfoToConsole(info);
                 resolve(true);
             });        
         })
         .then((b: boolean) => {
             // TODO: launch browser to view changes? or http-get and log results?\
-            iotOutputChannel.appendLine( '' );
-            iotOutputChannel.appendLine('Done.');
+            iotOutputChannel.appendLine(`Navigate to http://${this.host}:1337/ in a browser`);
+            iotOutputChannel.appendLine('');
         });
     }
 
@@ -750,17 +761,10 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Activating ${packageFullName}`);
             var req = request.post(url, param, function (err, resp, body) {
                 if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
                     reject(err);
                 } else {
-                    iotOutputChannel.appendLine('Application Started');
-                    iotOutputChannel.appendLine( '' );
                     resolve(resp);
                 }
             });
@@ -780,10 +784,17 @@ export class IotDevice
             return this.GetAppxInfo(architecture);
         }).then ((appxDetail) => {
             iotAppxDetail = appxDetail;
+            iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Activating ${iotAppxDetail.packagefullname}`);
             return this.ActivateApplication(iotAppxDetail.packagefullname);
         }).then ((resp: any) => {
-
-        })
+            iotOutputChannel.appendLine('Application Started');
+            iotOutputChannel.appendLine( '' );
+        }, function(err){
+            console.log(err.message);
+            iotOutputChannel.appendLine(err.message);
+            iotOutputChannel.appendLine( '' );
+        });
     }
 
     public StopAppx(packageFullName :string) : Thenable<any>
@@ -798,17 +809,10 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Stopping ${packageFullName}`);
             var req = request.delete(url, param, function (err, resp, body) {
                 if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
                     reject(err);
                 } else {
-                    iotOutputChannel.appendLine('Application Stopped');
-                    iotOutputChannel.appendLine( '' );
                     resolve(resp);
                 }
             });
@@ -823,9 +827,16 @@ export class IotDevice
             architecture = this.ArchitectureFromDeviceInfo(info);
             return this.GetAppxInfo(architecture);
         }).then ((appxDetail) => {
+            iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Stopping ${appxDetail.packagefullname}`);
             return this.StopAppx(appxDetail.packagefullname);
         }).then ((resp: any) => {
-            //iotOutputChannel.show();
+            iotOutputChannel.appendLine('Application Stopped');
+            iotOutputChannel.appendLine( '' );
+        },function(err) {  // why no .catch?
+            console.log(err.message);
+            iotOutputChannel.appendLine(err.message);
+            iotOutputChannel.appendLine( '' );
         });
     }
 }
