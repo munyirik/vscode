@@ -1,12 +1,9 @@
 'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+
 import * as vscode from 'vscode';
-import http = require('http');
-var request = require('request');
 import {IotDevice} from './iotDevice';
 
-
+const delay = require('delay');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -16,30 +13,26 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Windows Iot Core Extension for VS Code is now active!');
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
+    // The commands are defined in the package.json file
     // The commandId parameter must match the command field in package.json
-    let disposableGetDeviceInfo = vscode.commands.registerCommand('extension.getDeviceInfo', () => {       
-        let iotDevice = new IotDevice();
-        var iotHost :string;
-        var iotUser :string;
-        var iotPassword: string;
+    const disposableGetDeviceInfo = vscode.commands.registerCommand('extension.getDeviceInfo', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetDeviceInfo();
         }).then( (info: any) => {
-            iotDevice.PrintDeviceInfo(iotHost, info);
+            iotDevice.PrintDeviceInfo(info);
         })
     });
     context.subscriptions.push(disposableGetDeviceInfo);
 
-    let disposableGetExtensionInfo = vscode.commands.registerCommand('extension.getExtensionInfo', () => {       
-        let iotDevice = new IotDevice();
+    const disposableGetExtensionInfo = vscode.commands.registerCommand('extension.getExtensionInfo', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.GetExtensionInfo();
     });
     context.subscriptions.push(disposableGetExtensionInfo);
 
-    let disposableGetPackages = vscode.commands.registerCommand('extension.getPackages', () => {       
-        let iotDevice = new IotDevice();
+    const disposableGetPackages = vscode.commands.registerCommand('extension.getPackages', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetPackages();
         }).then( (info: any) => {
@@ -48,8 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetPackages);
 
-    let disposableGetAppxProcessInfo = vscode.commands.registerCommand('extension.getAppxProcessInfo', () => {       
-        let iotDevice = new IotDevice();
+    const disposableGetAppxProcessInfo = vscode.commands.registerCommand('extension.getAppxProcessInfo', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetProcessInfo();
         }).then( (info: any) => {
@@ -60,8 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposableGetAppxProcessInfo);
 
-    let disposableGetProcessInfo = vscode.commands.registerCommand('extension.getProcessInfo', () => {       
-        let iotDevice = new IotDevice();
+    const disposableGetProcessInfo = vscode.commands.registerCommand('extension.getProcessInfo', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetProcessInfo();
         }).then( (info: any) => {
@@ -71,56 +64,100 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetProcessInfo);
 
-    let disposableListIotCommands =  vscode.commands.registerCommand('extension.listIotCommands', () => {
-        let iotDevice = new IotDevice();
-        iotDevice.ListIotCommands();
+    const disposableGetWorkspaceInfo = vscode.commands.registerCommand('extension.getWorkspaceInfo', () => {       
+        const iotDevice = new IotDevice();
+        return iotDevice.GetWorkspaceInfo();       
     });
-    context.subscriptions.push(disposableListIotCommands);
+    context.subscriptions.push(disposableGetWorkspaceInfo);
 
-    let disposableUploadFile = vscode.commands.registerCommand('extension.uploadFile', () => {       
-        let iotDevice = new IotDevice();
+    const disposableUploadFile = vscode.commands.registerCommand('extension.uploadFile', () => {       
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             iotDevice.UploadFile();
         });
     });
     context.subscriptions.push(disposableUploadFile);
     
-    let disposableGetDeviceName = vscode.commands.registerCommand('extension.getDeviceName', () => {       
-        let iotDevice = new IotDevice();
-        iotDevice.GetDeviceName();
+    const disposableGetDeviceName = vscode.commands.registerCommand('extension.getDeviceName', () => {       
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.GetDeviceName(0);
+        })
+        .then((message: string) =>{
+            iotDevice.PrintMessage(message);
+        }, function(err){
+            iotDevice.PrintMessage(err);
+        });
     });
     context.subscriptions.push(disposableGetDeviceName);
 
-    let disposableSetDeviceName = vscode.commands.registerCommand('extension.setDeviceName', () => {
-        let iotDevice = new IotDevice();
-        iotDevice.SetDeviceName();
+    const disposableSetDeviceName = vscode.commands.registerCommand('extension.setDeviceName', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.SetDeviceName();
+        })
+        .then((res :any)=>{
+            return iotDevice.RestartDevice();
+        })
+        .then(delay(5000)) // wait for device to reboot, otherwise the name is retrieved before reboot.
+        .then((message:string) =>{
+            return iotDevice.GetDeviceName(30);
+        })
+        .then( (message :string) => {
+            iotDevice.PrintMessage(message);
+            iotDevice.PrintMessage("\nDevice is running\n")
+        }, function (err){
+            iotDevice.PrintMessage(err);
+            iotDevice.PrintMessage("\nDevice not found\n")
+        });
     });
     context.subscriptions.push(disposableSetDeviceName);
 
-    let disposableRunCommand = vscode.commands.registerCommand('extension.runCommand', () => {
-        let iotDevice = new IotDevice();
-        iotDevice.RunCommandFromSettings();
+    const disposableRestartDevice = vscode.commands.registerCommand('extension.restartDevice', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.RestartDevice();
+        })
+        .then(delay(5000)) // wait for device to reboot, otherwise the name is retrieved before reboot.
+        .then((message:string) =>{
+            return iotDevice.GetDeviceName(30);
+        })
+        .then( (message :string) => {
+            iotDevice.PrintMessage(message);
+            iotDevice.PrintMessage("\nDevice is running\n")
+        }, function(err){
+            iotDevice.PrintMessage(err);
+            iotDevice.PrintMessage("\nDevice not found\n")
+        });
+    });
+    context.subscriptions.push(disposableRestartDevice);
+
+    const disposableRunCommand = vscode.commands.registerCommand('extension.runCommand', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            iotDevice.RunCommandFromSettings();
+        })
     });
     context.subscriptions.push(disposableRunCommand);
     
-    let disposableRunRemoteScript = vscode.commands.registerCommand('extension.runRemoteScript', () => {
-        let iotDevice = new IotDevice();
+    const disposableRunRemoteScript = vscode.commands.registerCommand('extension.runRemoteScript', () => {
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b :boolean) => {
             iotDevice.RunRemoteScript();
         })
     });
     context.subscriptions.push(disposableRunRemoteScript);
 
-    let disposableStartNodeScriptHostopApp = vscode.commands.registerCommand('extension.startNodeScriptHost', () => {
-        let iotDevice = new IotDevice();
+    const disposableStartNodeScriptHostopApp = vscode.commands.registerCommand('extension.startNodeScriptHost', () => {
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) =>{
             iotDevice.StartNodeScriptHost();
         })
     });
     context.subscriptions.push(disposableStartNodeScriptHostopApp);
 
-    let disposableStopNodeScriptHost = vscode.commands.registerCommand('extension.stopNodeScriptHost', () => {
-        let iotDevice = new IotDevice();
+    const disposableStopNodeScriptHost = vscode.commands.registerCommand('extension.stopNodeScriptHost', () => {
+        const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             iotDevice.StopNodeScriptHost();
         });

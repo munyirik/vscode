@@ -24,8 +24,10 @@
     "onCommand:extension.getExtensionInfo",
     "onCommand:extension.getPackages",
     "onCommand:extension.getProcessInfo",
+    "onCommand:extension.getWorkspaceInfo",
     "onCommand:extension.listIotCommands",
     "onCommand:extension.setDeviceName",
+    "onCommand:extension.restartDevice",
     "onCommand:extension.runCommand",
     "onCommand:extension.runRemoteScript",
     "onCommand:extension.startNodeScriptHost",
@@ -109,8 +111,12 @@
         "title": "iot: Get Process Info"
       },
       {
-        "command": "extension.listIotCommands",
-        "title": "iot: List IoT Extension Commands"
+        "command": "extension.getWorkspaceInfo",
+        "title": "iot: Get Workspace Info"
+      },
+      {
+        "command": "extension.restartDevice",
+        "title": "iot: Restart Device"
       },
       {
         "command": "extension.runCommand",
@@ -134,7 +140,7 @@
       },
       {
         "command": "extension.uploadFile",
-        "title": "iot: Upload File to Device"
+        "title": "iot: Upload server.js to Device"
       }
     ]
   },
