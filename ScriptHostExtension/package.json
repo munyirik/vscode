@@ -2,7 +2,7 @@
   "name": "windowsiot",
   "displayName": "Windows Iot Core Extension for VS Code",
   "description": "Description of Windows IoT Core extension",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "Microsoft",
   "license": "TODO: specify license string",
   "engines": {
@@ -47,6 +47,14 @@
           "default": null,
           "description": "IP Address of the target Windows IoT Core device"
         },
+        "iot.Device.Port": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Port for workspace application"
+        },
         "iot.Device.DeviceName": {
           "type": [
             "string",
@@ -71,13 +79,14 @@
           "default": null,
           "description": "Password on the target Windows IoT Core device"
         },
-        "iot.File": {
-          "type": [
-            "string",
-            "null"
-          ],
+        "iot.Deployment.Files": {
+          "type": "array",
+          "description": "Files to upload"
+        },
+        "iot.Deployment.LaunchBrowserPage": {
+          "type": ["string", "null"],
           "default": null,
-          "description": "file to upload"
+          "description": "Browser page to launch after deployment"
         },
         "iot.RunCommands": {
           "type": "array",

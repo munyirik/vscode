@@ -378,9 +378,9 @@ export class IotDevice
         });
     }
     
-    private UploadFileToPackage(packageFullName :any, filename: string) :Thenable<any>
+    private UploadFileToPackage(packageFullName :any, filename: string) :Promise<string>
     {
-        return new Promise<any> ((resolve, reject) => {
+        return new Promise<string> ((resolve, reject) => {
             const url = 'http://' + this.host + ':8080/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=' + packageFullName + '&path=\\LocalState';
             console.log ('url=' + url)
 
@@ -404,12 +404,43 @@ export class IotDevice
                 }
                 else 
                 {
-                    resolve(resp);
+                    //resolve(resp);
+                    resolve(filename);
                 }
             });
             const form = req.form();
             form.append('file', fs.createReadStream(filename));
         })
+    }
+
+    public FindFilesToUpload() :Promise<any>
+    {
+        return new Promise<any> ((resolve,reject) => {
+            iotOutputChannel.appendLine('Locating files to upload in workspace.');
+
+            const config = vscode.workspace.getConfiguration('iot');
+            let files :any = config.get('Deployment.Files', '');
+            if (!files)
+            {
+                // todo - get "main" from package.json`
+                files = ["server.js", "package.json"];
+            }
+            
+            Promise.all(files.map(item => {
+                return vscode.workspace.findFiles(`**/${item}`, "");
+            }))
+            .then((result :vscode.Uri[][]) =>{
+                let foundFiles = [];
+                for (let i=0;i<result.length;i++)
+                {
+                    for (let j=0;j<result[i].length;j++)
+                    {
+                        foundFiles.push(result[i][j]);
+                    }
+                }
+                resolve(foundFiles);
+            })
+        });
     }
 
     public UploadFile()
@@ -425,15 +456,17 @@ export class IotDevice
             return this.GetAppxInfo(architecture);
         }).then ((appxDetail: any) => {
             iotAppxDetail = appxDetail;
-            iotOutputChannel.appendLine('Locating server.js in workspace.');
-            return vscode.workspace.findFiles("**/server.js", "", 1, null);
+            return this.FindFilesToUpload();
         })
         .then((uri :vscode.Uri[]) => {
-            iotFile = uri[0].fsPath;
-            iotOutputChannel.appendLine(`Uploading file ${iotFile} ...`);
-            return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile);
-        }).then((res:any) => {
-            iotOutputChannel.appendLine(`Successfully uploaded ${iotFile}`)
+            return Promise.all(uri.map(iotFile => {
+                iotOutputChannel.appendLine(`Uploading file ${iotFile.fsPath} ...`);
+                return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
+            }));
+        }).then((messages) => {
+            messages.map(message =>{
+                iotOutputChannel.appendLine(`Successfully uploaded ${message}`)
+            })
             iotOutputChannel.appendLine( '' );
         }, function(err){
             iotOutputChannel.appendLine(err);
@@ -577,14 +610,15 @@ export class IotDevice
         });
     }
     
-    private InstallPackage(appxInfo :any, architecture :string, hostInstalled :boolean) :Thenable<boolean>
+    private InstallPackage(appxInfo :any, architecture :string, hostInstalled :boolean) :Promise<any>
     {
-        return new Promise<boolean> ((resolve, reject) => {
+        return new Promise<any> ((resolve, reject) => {
             iotOutputChannel.show();
             if (hostInstalled)
             {
                 iotOutputChannel.appendLine('NodeScriptHost is already installed');
                 resolve(null);
+                return;
             }
 
             const ext = vscode.extensions.getExtension('Microsoft.windowsiot');
@@ -754,24 +788,34 @@ export class IotDevice
             {
                 iotOutputChannel.appendLine(message);
             }
-            iotOutputChannel.appendLine('Locating server.js in workspace.');
-            return vscode.workspace.findFiles("**/server.js", "", 1, null);
+            return this.FindFilesToUpload();
         })
         .then((uri :vscode.Uri[]) => {
-            iotOutputChannel.appendLine(`Uploading file: ${uri[0].fsPath}`);
-            return this.UploadFileToPackage(iotAppxDetail.packageFullName, uri[0].fsPath);
-        })
-        .then((resp: any) => {
-            console.log('resp.statusCode=' + resp.statusCode + '\n');
+            return Promise.all(uri.map(iotFile => {
+                iotOutputChannel.appendLine(`Uploading file ${iotFile.fsPath} ...`);
+                return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
+            }));
+        }).then((messages) => {
+            messages.map(message =>{
+                iotOutputChannel.appendLine(`Successfully uploaded ${message}`)
+            })
             iotOutputChannel.appendLine('Starting NodeScriptHost...');
             return this.ActivateApplication(iotAppxDetail.packageFullName);
         })
         .then((b: boolean) => {
-            const url = `http://${this.host}:1337/`;
-            iotOutputChannel.appendLine(`Navigate to ${url} in a browser\n`); // TODO: this uses a hardcoded port so it's a hack
+            const config = vscode.workspace.getConfiguration('iot');
+            let launchBrowserPage = config.get('Deployment.LaunchBrowserPage', '');
+            if (launchBrowserPage)
+            {
+                iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`); // TODO: this uses a hardcoded port so it's a hack
 
-            // launch browser (probably only works on windows)
-            const browser = spawn('cmd.exe', ['/C', 'start', url]);
+                // launch browser (probably only works on windows)
+                const browser = spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
+            }
+            else
+            {
+                iotOutputChannel.appendLine('Done.');
+            }
         });
     }
 
@@ -825,9 +869,10 @@ export class IotDevice
     public StopAppx(packageFullName :string, hostRunning :boolean) : Thenable<any>
     {
         return new Promise<any> ((resolve, reject) =>{
-            if (hostRunning)
+            if (!hostRunning)
             {
                 resolve(null);
+                return;
             }
 
             // TODO: is this correct for headless apps?
@@ -855,6 +900,7 @@ export class IotDevice
             if (hostInstalled)
             {
                 resolve(null);
+                return;
             }
             
             const config = vscode.workspace.getConfiguration('iot');               
@@ -896,6 +942,7 @@ export class IotDevice
             if (!hostRunning)
             {
                 resolve(null);
+                return;
             }
 
             const url = 'http://' + this.host + ':8080/api/resourcemanager/processes';
