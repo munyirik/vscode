@@ -2,7 +2,7 @@
   "name": "windowsiot",
   "displayName": "Windows Iot Core Extension for VS Code",
   "description": "Description of Windows IoT Core extension",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "Microsoft",
   "license": "TODO: specify license string",
   "engines": {
@@ -29,6 +29,7 @@
     "onCommand:extension.setDeviceName",
     "onCommand:extension.restartDevice",
     "onCommand:extension.runCommand",
+    "onCommand:extension.runCommandFromSettings",
     "onCommand:extension.runRemoteScript",
     "onCommand:extension.startNodeScriptHost",
     "onCommand:extension.stopNodeScriptHost",
@@ -129,7 +130,11 @@
       },
       {
         "command": "extension.runCommand",
-        "title": "iot: Run Command on Device"
+        "title": "iot: Run Command Prompt"
+      },
+      {
+        "command": "extension.runCommandFromSettings",
+        "title": "iot: Run Command List"
       },
       {
         "command": "extension.runRemoteScript",

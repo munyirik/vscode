@@ -686,17 +686,67 @@ export class IotDevice
         });
     }
 
+    public RunCommandInternal(command, resolve, reject)
+    {
+        iotOutputChannel.show();
+        iotOutputChannel.appendLine(`Run ${command}`)
+
+        const url = 
+            'http://' + this.host + 
+            ':8080/api/iot/processmanagement/runcommandwithoutput?command=' + new Buffer(command).toString('base64') + 
+            '&runasdefaultaccount=' + new Buffer('false').toString('base64') +
+            '&timeout='  + new Buffer('300000').toString('base64');
+        console.log ('url=' + url)
+
+        const param = {'auth': {
+            'user': this.user,
+            'pass': this.password
+        }};
+
+        const req = request.post(url, param, function (err, resp, body) {
+            if (err){
+                console.log(err.message);
+                reject(err.message);
+            }
+            else if (resp.statusCode != 200)
+            {
+                resolve(`statusMessage=${resp.statusMessage}\nstatusCode=${resp.statusCode}\n`);
+            } 
+            else {
+                const info = JSON.parse(body);
+                resolve(info.output);
+            }
+        });
+    }
+
+    public RunCommandFromPrompt()
+    {
+        return new Promise<any> ((resolve,reject) => {
+            vscode.window.showInputBox({"placeHolder":"command to run", "prompt":"Enter Command to Run"})
+            .then((command) =>{
+                this.RunCommandInternal(command, resolve, reject);
+            });
+        });
+    }
+
     public RunCommandFromSettings()
     {
-        // TODO: show pick list of commands from config file
-        const command :string = 'icacls c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js /grant *S-1-5-21-2702878673-795188819-444038987-503:F';
-
-        iotOutputChannel.show();
-        iotOutputChannel.appendLine(`Running ${command}`)           
-        this.RunCommand(command).then((resp) => {
-            iotOutputChannel.appendLine('resp.statusCode=' + resp.statusCode);
-            iotOutputChannel.appendLine( '' );
-        })
+        return new Promise<any> ((resolve,reject) => {
+            const config = vscode.workspace.getConfiguration('iot');
+            let commands :any = config.get('RunCommands', '');
+            if (!commands)
+            {
+                commands = 
+                [
+                    "tlist", 
+                    "deployappx getpackages"
+                ];
+            }
+            vscode.window.showQuickPick(commands)
+            .then((command) =>{
+                this.RunCommandInternal(command, resolve, reject);
+            });
+        });
     }
     
     public RunCommand(command: string) :Thenable<any>

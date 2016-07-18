@@ -2,15 +2,28 @@
 {
     "iot" : {
         "Device" : {
-            "IpAddress": "10.137.185.215",
-            "DeviceName": "paulmon-vm",
+            "IpAddress": "10.127.128.129",
+            "DeviceName": "mydevice",
             "UserName": "Administrator",
             "Password": "p@ssw0rd"
         },
-        "File": "\\\\scratch2\\scratch\\paulmon\\vscode\\server.js",
+        "Deployment" : {
+            "Files": [
+                "index.js",
+                "package.json",
+                "startupinfo.xml"
+            ],
+            "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
+        },
         "RunCommands": [
-            "c:\\test\\TakeRegistryAdminOwnership.exe MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service",
-            "reg add HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WebManagement\\Service /v RequireDevUnlock /t REG_DWORD /d 0"
+            "iotstartup list",
+            "iotstartup add headless NodeScriptHost",
+            "iotstartup remove headless NodeScriptHost",
+            "deployappx getpackages|findstr -i nodescripthost",
+            "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
+            "dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\package.json"
         ]
     }
 }

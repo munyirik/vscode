@@ -135,10 +135,28 @@ export function activate(context: vscode.ExtensionContext) {
     const disposableRunCommand = vscode.commands.registerCommand('extension.runCommand', () => {
         const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
-            iotDevice.RunCommandFromSettings();
+            return iotDevice.RunCommandFromPrompt();
         })
+        .then((message) =>{
+            iotDevice.PrintMessage(message);
+        }, function(err){
+            iotDevice.PrintMessage(err);
+        });
     });
     context.subscriptions.push(disposableRunCommand);
+
+    const disposableRunCommandFromSettings = vscode.commands.registerCommand('extension.runCommandFromSettings', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.RunCommandFromSettings();
+        })
+        .then((message) =>{
+            iotDevice.PrintMessage(message);
+        }, function(err){
+            iotDevice.PrintMessage(err);
+        });
+    });
+    context.subscriptions.push(disposableRunCommandFromSettings);
     
     const disposableRunRemoteScript = vscode.commands.registerCommand('extension.runRemoteScript', () => {
         const iotDevice = new IotDevice();
