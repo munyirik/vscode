@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import fs = require('fs');
 
-//const delay = require('delay');
+const path = require('path');
 const request = require('request');
 const spawn = require('child_process').spawn;
 
@@ -184,8 +184,7 @@ export class IotDevice
                         iotOutputChannel.appendLine(err.message);
                         iotOutputChannel.appendLine( '' );
                     }
-
-                    if (resp.statusCode != 200)
+                    else if (resp && resp.statusCode != 200)
                     {
                         const info = JSON.parse(body);
                         iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
@@ -381,35 +380,59 @@ export class IotDevice
     private UploadFileToPackage(packageFullName :any, filename: string) :Promise<string>
     {
         return new Promise<string> ((resolve, reject) => {
-            const url = 'http://' + this.host + ':8080/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=' + packageFullName + '&path=\\LocalState';
-            console.log ('url=' + url)
+            let relPath = path.relative(vscode.workspace.rootPath, filename);
+            let relDir = path.dirname(relPath);
+            let remotePath = '\\LocalState'
+            console.log ('filename='+filename);
+            console.log ('relDir=' + relDir);
+            if (relDir !== '.')
+            {
+                remotePath = remotePath + '\\' + relDir;
+            }
+            console.log ('remotePath=' + remotePath);
 
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password
-            }};
+            let longRemotePath = 'c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp' + remotePath;
+            console.log ('longRemotePath=' + longRemotePath);
 
-            const req = request.post(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    reject(err.message);
-                } 
-                else if (resp.statusCode != 200)
+            //this.RunCommand(`if not exist ${longRemotePath} md ${longRemotePath}`, true)
+            this.RunCommand(`md ${longRemotePath}`, true)
+            .then((message) => {
+                if (message)
                 {
-                    const info = JSON.parse(body);
-                    console.log(info.Reason);
-                    console.log('status=' + resp.statusCode);
-                    let message = `ERROR: File upload failed\nReason=${info.Reason}\nstatusCode=${resp.statusCode}`;
-                    reject(message);
+                    iotOutputChannel.appendLine(message);
                 }
-                else 
-                {
-                    //resolve(resp);
-                    resolve(filename);
-                }
-            });
-            const form = req.form();
-            form.append('file', fs.createReadStream(filename));
+
+                const url = 'http://' + this.host + ':8080/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=' + packageFullName + '&path=' + remotePath;
+                console.log ('url=' + url);
+
+                const param = {'auth': {
+                    'user': this.user,
+                    'pass': this.password
+                }};
+
+                const req = request.post(url, param, function (err, resp, body) {
+                    if (err){
+                        console.error(err.message);
+                        reject(err.message);
+                    } 
+                    else if (resp.statusCode != 200)
+                    {
+                        const info = JSON.parse(body);
+                        let message = `ERROR: File upload failed: ${filename}\nReason=${info.Reason}\nstatusCode=${resp.statusCode}`;
+                        console.error(message);
+                        reject(message);
+                    }
+                    else 
+                    {
+                        //resolve(resp);
+                        resolve(filename);
+                    }
+                }, function(err){
+                    console.error(err);                    
+                });
+                const form = req.form();
+                form.append('file', fs.createReadStream(filename));
+            })
         })
     }
 
@@ -422,15 +445,15 @@ export class IotDevice
             let files :any = config.get('Deployment.Files', '');
             if (!files)
             {
-                // todo - get "main" from package.json`
-                files = ["server.js", "package.json"];
+                // todo - get "main" from package.json?
+                reject("Please specify files to upload in settings.json - iot.Deployment.Files")
             }
             
+            let foundFiles = [];
             Promise.all(files.map(item => {
-                return vscode.workspace.findFiles(`**/${item}`, "");
+                return vscode.workspace.findFiles(`${item}`, "");
             }))
             .then((result :vscode.Uri[][]) =>{
-                let foundFiles = [];
                 for (let i=0;i<result.length;i++)
                 {
                     for (let j=0;j<result[i].length;j++)
@@ -438,7 +461,26 @@ export class IotDevice
                         foundFiles.push(result[i][j]);
                     }
                 }
-                resolve(foundFiles);
+
+                let vscode_dir_cmd = 'dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState /s/b';
+                this.RunCommand(vscode_dir_cmd, false)
+                .then((output) =>{
+                    //console.log(output);
+                    let installedFiles = output.split("\r\n");
+                    installedFiles.forEach((file, index, array) => {
+                        array[index] = file.replace("c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\", "");
+                    });
+                    let foundFilesFiltered = foundFiles.filter((uri,index,array) => {
+                        let relpath = path.relative(vscode.workspace.rootPath, uri.fsPath);
+                        if (relpath.indexOf("node_modules") < 0){ 
+                            return true;
+                        }
+                        return !installedFiles.find((value, index, array) => { if(value===relpath) return true; else return false; });
+                    })
+                    resolve(foundFilesFiltered);
+                })                
+            }, function(err){
+                iotOutputChannel.appendLine("ERROR: err");
             })
         });
     }
@@ -686,10 +728,13 @@ export class IotDevice
         });
     }
 
-    public RunCommandInternal(command, resolve, reject)
+    public RunCommandInternal(command, resolve, reject, quiet)
     {
-        iotOutputChannel.show();
-        iotOutputChannel.appendLine(`Run ${command}`)
+        if (!quiet)
+        {
+            iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Run ${command}`)
+        }
 
         const url = 
             'http://' + this.host + 
@@ -710,11 +755,20 @@ export class IotDevice
             }
             else if (resp.statusCode != 200)
             {
-                resolve(`statusMessage=${resp.statusMessage}\nstatusCode=${resp.statusCode}\n`);
+                let message = `command=${command}\nstatusMessage=${resp.statusMessage}\nstatusCode=${resp.statusCode}\n`;
+                console.error(message);
+                resolve(message);
             } 
             else {
                 const info = JSON.parse(body);
-                resolve(info.output);
+                if (!quiet)
+                {
+                    resolve(info.output);
+                }
+                else
+                {
+                    resolve(null);
+                }
             }
         });
     }
@@ -724,7 +778,7 @@ export class IotDevice
         return new Promise<any> ((resolve,reject) => {
             vscode.window.showInputBox({"placeHolder":"command to run", "prompt":"Enter Command to Run"})
             .then((command) =>{
-                this.RunCommandInternal(command, resolve, reject);
+                this.RunCommandInternal(command, resolve, reject, false);
             });
         });
     }
@@ -744,30 +798,15 @@ export class IotDevice
             }
             vscode.window.showQuickPick(commands)
             .then((command) =>{
-                this.RunCommandInternal(command, resolve, reject);
+                this.RunCommandInternal(command, resolve, reject, false);
             });
         });
     }
     
-    public RunCommand(command: string) :Thenable<any>
+    public RunCommand(command :string, quiet :boolean) :Promise<string>
     {
         return new Promise<any> ((resolve, reject) => {
-            const url = 'http://' + this.host + ':8080/api/iot/processmanagement/runcommand?command=' + new Buffer(command).toString('base64') + '&runasdefaultaccount=false' ;
-            console.log ('url=' + url)
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password
-            }};
-
-            const req = request.post(url, param, function (err, resp, body) {
-                if (err){
-                    console.log(err.message);
-                    reject(err);
-                } else {
-                    resolve(resp);
-                }
-            });
+            this.RunCommandInternal(command, resolve, reject, quiet);
         });
     }
 

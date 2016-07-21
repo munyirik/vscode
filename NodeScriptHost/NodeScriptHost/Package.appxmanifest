@@ -7,7 +7,7 @@
 
   <Identity Name="NodeScriptHost" Publisher="CN=paulmon" Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="f0eb9978-1061-4876-8f05-9c68905c9e55" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="f54d6c15-3e0d-43dd-b815-c32c84dee680" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>NodeScriptHost</DisplayName>

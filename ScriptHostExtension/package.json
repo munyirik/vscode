@@ -154,7 +154,7 @@
       },
       {
         "command": "extension.uploadFile",
-        "title": "iot: Upload server.js to Device"
+        "title": "iot: Upload Workspace Files"
       }
     ]
   },
