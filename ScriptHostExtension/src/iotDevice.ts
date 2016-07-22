@@ -3,9 +3,11 @@
 import * as vscode from 'vscode';
 import fs = require('fs');
 
+const dgram = require('dgram');
 const path = require('path');
 const request = require('request');
 const spawn = require('child_process').spawn;
+const util = require('util');
 
 const iotOutputChannel = vscode.window.createOutputChannel('IoT');
 
@@ -41,10 +43,12 @@ const appx = {
 
 export class IotDevice
 {
-    private host: string;
-    private devName: string;
-    private user: string;
-    private password: string;
+    private host :string;
+    private devName :string;
+    private user :string;
+    private password :string;
+    private static listeningForEboot = false;
+    private static iotDeviceList :Array<string>;
     
     constructor()
     {
@@ -306,6 +310,95 @@ export class IotDevice
         });
     }
     
+    public static ListIoTDevicesCallback()
+    {
+        iotOutputChannel.appendLine("List IoT Devices");
+        const spaces = '                                        ';
+        let col1 = 0;
+        for (var index in IotDevice.iotDeviceList)
+        {
+            col1 = (col1>index.length)?col1:index.length;
+        }
+        col1 = (spaces.length < col1+2)?spaces.length:(col1+2);
+
+        for (var index in IotDevice.iotDeviceList)
+        {
+            iotOutputChannel.appendLine(index + spaces.substr(0, col1-index.length) + IotDevice.iotDeviceList[index]);
+        }
+        iotOutputChannel.appendLine('');
+    }
+
+    public static ListIoTDevices()
+    {
+        let count = 0;
+        for (var index in IotDevice.iotDeviceList)
+        {
+            count++;
+        }
+
+        // if the list is empty wait 3 seconds,
+        // otherwise this doesn't work if it's the first command
+        setTimeout(IotDevice.ListIoTDevicesCallback, (count>0)?0:3000);
+    }
+
+    private static UnpackEbootBuffer (buffer :Uint8Array)
+    {
+        const host_len = 33;
+        const ipv4_len = 4 * 4 + 1;
+        // const mac_len = 3 * 8 + 1;
+        // const id_len = 40;
+        // const model_len = 50;
+        // const version_len = 50;
+        // const arch_len = 8;
+        
+        const host_offset    = 0;
+        const ipv4_offset    = host_len;
+        // const mac_offset     = host_len + ipv4_len;
+        // const id_offset      = mac_offset + mac_len;
+        // const model_offset   = id_offset + id_len;
+        // const version_offset = model_offset + model_len;
+        // const arch_offset    = version_offset + version_len;
+
+        let data = new Buffer(buffer);
+        let s = data.toString( 'ucs2');
+
+        let host = s.substr(host_offset, host_len);
+        let i = host.indexOf('\0');
+        host = host.substr(0,i);
+        
+        let ipv4 = s.substr(ipv4_offset, ipv4_len);
+        i = ipv4.indexOf('\0');
+        ipv4 = ipv4.substr(0,i);
+
+        IotDevice.iotDeviceList[ipv4] = host;
+    }
+
+    public static ListenEbootPinger()
+    {
+        if (!IotDevice.listeningForEboot)
+        {
+            IotDevice.listeningForEboot = true;
+            IotDevice.iotDeviceList = new Array<string>();
+
+            const s = dgram.createSocket('udp4');
+            s.on('listening', function(){
+                var address = s.address();
+                console.log('UDP Client listening on ' + address.address + ":" + address.port);
+            });
+
+            s.on('message', function(message, remote){
+                //iotOutputChannel.appendLine(`from=${remote.address}:${remote.port}\nmessage=${message}`);
+                IotDevice.UnpackEbootBuffer(message);
+            });
+
+            s.bind(6, () => {
+                s.setBroadcast(true);
+                s.setMulticastTTL(128);
+                s.addMembership('239.0.0.222');
+            });
+        };
+    }
+
     public SetDeviceName() : Thenable<any>
     {
         return new Promise<any>( (resolve, reject) =>

@@ -26,7 +26,7 @@
     "onCommand:extension.getPackages",
     "onCommand:extension.getProcessInfo",
     "onCommand:extension.getWorkspaceInfo",
-    "onCommand:extension.listIotCommands",
+    "onCommand:extension.listIoTDevices",
     "onCommand:extension.setDeviceName",
     "onCommand:extension.restartDevice",
     "onCommand:extension.runCommand",
@@ -124,6 +124,10 @@
       {
         "command": "extension.getWorkspaceInfo",
         "title": "iot: Get Workspace Info"
+      },
+      {
+        "command": "extension.listIoTDevices",
+        "title": "iot: List IoT Devices"
       },
       {
         "command": "extension.restartDevice",

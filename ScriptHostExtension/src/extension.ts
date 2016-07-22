@@ -13,6 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Windows Iot Core Extension for VS Code is now active!');
 
+    IotDevice.ListenEbootPinger();
+
     // The commands are defined in the package.json file
     // The commandId parameter must match the command field in package.json
     const disposableGetDeviceInfo = vscode.commands.registerCommand('extension.getDeviceInfo', () => {       
@@ -90,6 +92,11 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
     context.subscriptions.push(disposableGetDeviceName);
+
+    const disposableListenEbootPinger = vscode.commands.registerCommand('extension.listIoTDevices', () => {
+        IotDevice.ListIoTDevices();
+    });
+    context.subscriptions.push(disposableListenEbootPinger);
 
     const disposableSetDeviceName = vscode.commands.registerCommand('extension.setDeviceName', () => {
         const iotDevice = new IotDevice();
