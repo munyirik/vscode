@@ -149,7 +149,7 @@ export class IotDevice
     
     public GetExtensionInfo()
     {
-        const ext = vscode.extensions.getExtension('Microsoft.windowsiot');
+        const ext = vscode.extensions.getExtension('ms-iot.windowsiot');
         iotOutputChannel.show();
         iotOutputChannel.appendLine('ext.extensionPath=' + ext.extensionPath);
         //iotOutputChannel.appendLine('ext.exports=' + ext.exports);
@@ -417,15 +417,23 @@ export class IotDevice
                     } 
                     else if (resp.statusCode != 200)
                     {
-                        const info = JSON.parse(body);
-                        let message = `ERROR: File upload failed: ${filename}\nReason=${info.Reason}\nstatusCode=${resp.statusCode}`;
+                        let message = `ERROR: File upload failed: ${filename}\n`;
+                        if (resp.body.length > 0)
+                        {
+                            const info = JSON.parse(body);
+                            message = message + `Reason=${info.Reason}\nstatusCode=${resp.statusCode}`;
+                        }
+                        else if (resp.statusMessage.length > 0)
+                        {
+                            message = message + `Reason=${resp.statusMessage}\nstatusCode=${resp.statusCode}`;
+                        }
+
                         console.error(message);
-                        reject(message);
+                        resolve(message);
                     }
                     else 
                     {
-                        //resolve(resp);
-                        resolve(filename);
+                        resolve(relPath);
                     }
                 }, function(err){
                     console.error(err);                    
@@ -485,31 +493,54 @@ export class IotDevice
         });
     }
 
-    public UploadFile()
+    public UploadWorkspaceFiles()
     {
         iotOutputChannel.show();
+        iotOutputChannel.appendLine('Upload Workspace Files:');
 
         let architecture :string;
         let iotAppxDetail :any;
         let iotFile :string
+        let hostInstalled = false;
 
         return this.GetDeviceInfo().then((info) => {
             architecture = this.ArchitectureFromDeviceInfo(info);
             return this.GetAppxInfo(architecture);
-        }).then ((appxDetail: any) => {
+        })
+        .then ((appxDetail: any) => {
             iotAppxDetail = appxDetail;
+            return this.GetPackages();
+        })
+        .then ((info: any) => {
+            hostInstalled = IotDevice.IsInstalled(info, iotAppxDetail.id);
+            return this.InstallPackage(iotAppxDetail, architecture, hostInstalled);
+        })
+        .then((resp: any) => {
+            return this.WaitForAppxInstall(iotAppxDetail.id, hostInstalled);
+        })
+        .then((info: any) => {
             return this.FindFilesToUpload();
         })
         .then((uri :vscode.Uri[]) => {
-            return Promise.all(uri.map(iotFile => {
-                iotOutputChannel.appendLine(`Uploading file ${iotFile.fsPath} ...`);
-                return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
-            }));
-        }).then((messages) => {
-            messages.map(message =>{
-                iotOutputChannel.appendLine(`Successfully uploaded ${message}`)
+            let chain :Promise<string> = null;
+            uri.forEach(iotFile => {
+                if (!chain)
+                {
+                    chain = this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
+                }
+                else
+                {
+                    chain = chain.then((message) =>{
+                        iotOutputChannel.appendLine( '  ' + message );
+                        return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
+                    })
+                }
             })
-            iotOutputChannel.appendLine( '' );
+            iotOutputChannel.appendLine( '\nUploading files:' );
+            return chain;
+        }).then((message) => {
+            iotOutputChannel.appendLine( message );
+            iotOutputChannel.appendLine( 'Upload Complete\n' );
         }, function(err){
             iotOutputChannel.appendLine(err);
             iotOutputChannel.appendLine( '' );
@@ -663,7 +694,7 @@ export class IotDevice
                 return;
             }
 
-            const ext = vscode.extensions.getExtension('Microsoft.windowsiot');
+            const ext = vscode.extensions.getExtension('ms-iot.windowsiot');
             const appxFolder = ext.extensionPath + '\\appx\\' + architecture + '-appx\\';
             console.log('ext.extensionPath=' + ext.extensionPath);           
 
