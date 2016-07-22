@@ -2,7 +2,7 @@
   "name": "windowsiot",
   "displayName": "Windows Iot Core Extension for VS Code",
   "description": "Description of Windows IoT Core extension",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "ms-iot",
   "license": "MS-PL",
   "preview": true,
@@ -159,12 +159,6 @@
       }
     ]
   },
-  "keybindings": [
-    {
-      "command": "extension.runRemoteScript",
-      "key": "f5"
-    }
-  ],
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
     "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",

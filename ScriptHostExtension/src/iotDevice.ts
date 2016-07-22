@@ -533,7 +533,10 @@ export class IotDevice
                     chain = chain.then((message) =>{
                         iotOutputChannel.appendLine( '  ' + message );
                         return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
-                    })
+                    }, function (err){ 
+                        iotOutputChannel.appendLine(err);
+                        iotOutputChannel.appendLine( '' );                        
+                    });
                 }
             })
             iotOutputChannel.appendLine( '\nUploading files:' );
