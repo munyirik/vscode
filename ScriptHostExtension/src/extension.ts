@@ -93,8 +93,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetDeviceName);
 
-    const disposableListenEbootPinger = vscode.commands.registerCommand('extension.listIoTDevices', () => {
-        IotDevice.ListIoTDevices();
+    const disposableListenEbootPinger = vscode.commands.registerCommand('extension.listDevices', () => {
+        IotDevice.ListDevices();
     });
     context.subscriptions.push(disposableListenEbootPinger);
 

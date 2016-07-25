@@ -41,6 +41,44 @@ const appx = {
     }
 };
 
+const host_len = 33;
+const ipv4_len = 4 * 4 + 1;
+const mac_len = 3 * 8 + 1;
+const id_len = 40;
+const model_len = 50;
+const version_len = 50;
+const arch_len = 8;
+
+const host_offset    = 0;
+const ipv4_offset    = host_len;
+const mac_offset     = host_len + ipv4_len;
+const id_offset      = mac_offset + mac_len;
+const model_offset   = id_offset + id_len;
+const version_offset = model_offset + model_len;
+const arch_offset    = version_offset + version_len;
+
+class HostInfo
+{
+    public host :string;
+    public seen :Number;
+    public mac :string;
+    public id :string;
+    public model :string;
+    public version :string;
+    public arch :string;
+
+    constructor(hostName :string, lastSeen :Number, mac :string, id :string, model :string, version :string, arch :string)
+    {
+        this.host = hostName;
+        this.seen = lastSeen;
+        this.mac = mac;
+        this.id = id;
+        this.model = model;
+        this.version = version;
+        this.arch = arch;
+    }
+}
+
 export class IotDevice
 {
     private host :string;
@@ -48,7 +86,7 @@ export class IotDevice
     private user :string;
     private password :string;
     private static listeningForEboot = false;
-    private static iotDeviceList :Array<string>;
+    private static iotDeviceList :Map<string, HostInfo>;
     
     constructor()
     {
@@ -278,9 +316,6 @@ export class IotDevice
                     {
                         const info = JSON.parse(body);
                         let message = `Get Device Name:\nDevice=${this.host}\nComputerName=${info.ComputerName}\n`; 
-                        // iotOutputChannel.appendLine( 'Device=' + this.host );
-                        // iotOutputChannel.appendLine( 'ComputerName=' + info.ComputerName);
-                        // iotOutputChannel.appendLine( '' );
                         resolve(message);
                     }
                     else 
@@ -290,16 +325,12 @@ export class IotDevice
                         {
                             if (err){
                                 console.log(err.message);
-                                // iotOutputChannel.appendLine(err.message);
-                                // iotOutputChannel.appendLine( '' );
                                 reject(err.message);
                             }
                             else if (resp && resp.statusCode != 200)
                             {
                                 const info = JSON.parse(body);
                                 const message = info.Reason + ' status=' + resp.statusCode;
-                                // iotOutputChannel.appendLine(message);
-                                // iotOutputChannel.appendLine( '' );
                                 reject(message);
                             }
                         }
@@ -310,55 +341,94 @@ export class IotDevice
         });
     }
     
-    public static ListIoTDevicesCallback()
+    public static ListDevicesCallback()
     {
         iotOutputChannel.appendLine("List IoT Devices");
-        const spaces = '                                        ';
+        const spaces = '                                                                           ';
         let col1 = 0;
-        for (var index in IotDevice.iotDeviceList)
+        let hostWidth = 0;
+        let modelWidth = 0;
+        
+        // remove devices which haven't been seen recently
+        const maxAge = 10*1000;
+        let ageThreshold = Number(new Date()) - maxAge;
+        IotDevice.iotDeviceList.forEach( (info :HostInfo, index :string, map :Map<string,HostInfo>) =>
+        {
+            if(info.seen < ageThreshold)
+            {
+                map.delete(index);      
+            }
+        });
+
+        // adjust col1 width
+        IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
             col1 = (col1>index.length)?col1:index.length;
-        }
+        });
         col1 = (spaces.length < col1+2)?spaces.length:(col1+2);
 
-        for (var index in IotDevice.iotDeviceList)
+        // adjust host width
+        IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
-            iotOutputChannel.appendLine(index + spaces.substr(0, col1-index.length) + IotDevice.iotDeviceList[index]);
-        }
+            hostWidth = (hostWidth>info.host.length)?hostWidth:info.host.length;
+        });
+        hostWidth = (spaces.length < hostWidth+2)?spaces.length:(hostWidth+2);
+
+        // adjust model width
+        IotDevice.iotDeviceList.forEach( (info, index, map) =>
+        {
+            modelWidth = (modelWidth>info.model.length)?modelWidth:info.model.length;
+        });
+        modelWidth = (spaces.length < modelWidth+2)?spaces.length:(modelWidth+2);
+
+        IotDevice.iotDeviceList.forEach( (info, index, map) =>
+        {
+            col1 = (col1>index.length)?col1:index.length;
+        });
+        col1 = (spaces.length < col1+2)?spaces.length:(col1+2);
+
+        const config = vscode.workspace.getConfiguration('iot');
+        let deviceFilter :string = config.get('Device.ListFilter', '');
+        iotOutputChannel.show();
+        IotDevice.iotDeviceList.forEach( (info, index, map) =>
+        {
+            if (!deviceFilter ||
+                ((index.indexOf(deviceFilter) >= 0) ||  (IotDevice.iotDeviceList.get(index).host.indexOf(deviceFilter) >= 0)))
+            {
+                iotOutputChannel.append(index)
+                iotOutputChannel.append(spaces.substr(0, col1-index.length));
+                iotOutputChannel.append(map.get(index).host);
+                iotOutputChannel.append(spaces.substr(0, hostWidth-map.get(index).host.length));
+                iotOutputChannel.append(map.get(index).model);
+                iotOutputChannel.append(spaces.substr(0, modelWidth-map.get(index).model.length));
+                iotOutputChannel.append(map.get(index).arch);
+                iotOutputChannel.append(spaces.substr(0, arch_len-map.get(index).arch.length));
+                iotOutputChannel.append(map.get(index).mac);
+                iotOutputChannel.append(spaces.substr(0, mac_len-map.get(index).mac.length));
+                //iotOutputChannel.append(map.get(index).id);
+                //iotOutputChannel.append(spaces.substr(0, id_len-map.get(index).id.length));
+                // iotOutputChannel.append(map.get(index).version);
+                // iotOutputChannel.append(spaces.substr(0, version_len-map.get(index).version.length));
+                iotOutputChannel.appendLine('');
+            }
+        });
         iotOutputChannel.appendLine('');
     }
 
-    public static ListIoTDevices()
+    public static ListDevices()
     {
-        let count = 0;
-        for (var index in IotDevice.iotDeviceList)
-        {
-            count++;
-        }
-
         // if the list is empty wait 3 seconds,
         // otherwise this doesn't work if it's the first command
-        setTimeout(IotDevice.ListIoTDevicesCallback, (count>0)?0:3000);
+        if (IotDevice.iotDeviceList.size === 0)
+        {
+            iotOutputChannel.show();
+            iotOutputChannel.appendLine('Initializing device list...\n')
+        }
+        setTimeout(IotDevice.ListDevicesCallback, (IotDevice.iotDeviceList.size > 0)?0:10*1000);
     }
 
     private static UnpackEbootBuffer (buffer :Uint8Array)
     {
-        const host_len = 33;
-        const ipv4_len = 4 * 4 + 1;
-        // const mac_len = 3 * 8 + 1;
-        // const id_len = 40;
-        // const model_len = 50;
-        // const version_len = 50;
-        // const arch_len = 8;
-        
-        const host_offset    = 0;
-        const ipv4_offset    = host_len;
-        // const mac_offset     = host_len + ipv4_len;
-        // const id_offset      = mac_offset + mac_len;
-        // const model_offset   = id_offset + id_len;
-        // const version_offset = model_offset + model_len;
-        // const arch_offset    = version_offset + version_len;
-
         let data = new Buffer(buffer);
         let s = data.toString( 'ucs2');
 
@@ -370,7 +440,27 @@ export class IotDevice
         i = ipv4.indexOf('\0');
         ipv4 = ipv4.substr(0,i);
 
-        IotDevice.iotDeviceList[ipv4] = host;
+        let mac = s.substr(mac_offset, mac_len);
+        i = mac.indexOf('\0');
+        mac = mac.substr(0,i);
+
+        let id = s.substr(id_offset, id_len);
+        i = id.indexOf('\0');
+        id = id.substr(0,i);
+
+        let model = s.substr(model_offset, model_len);
+        i = model.indexOf('\0');
+        model = model.substr(0,i);
+
+        let version = s.substr(version_offset, version_len);
+        i = version.indexOf('\0');
+        version = version.substr(0,i);
+
+        let arch = s.substr(arch_offset, arch_len);
+        i = arch.indexOf('\0');
+        arch = arch.substr(0,i);
+
+        IotDevice.iotDeviceList.set(ipv4, new HostInfo(host, Number(new Date()), mac, id, model, version, arch));
     }
 
     public static ListenEbootPinger()
@@ -378,7 +468,7 @@ export class IotDevice
         if (!IotDevice.listeningForEboot)
         {
             IotDevice.listeningForEboot = true;
-            IotDevice.iotDeviceList = new Array<string>();
+            IotDevice.iotDeviceList = new Map<string, HostInfo>();
 
             const s = dgram.createSocket('udp4');
             s.on('listening', function(){

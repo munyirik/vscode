@@ -27,7 +27,7 @@
     "onCommand:extension.getPackages",
     "onCommand:extension.getProcessInfo",
     "onCommand:extension.getWorkspaceInfo",
-    "onCommand:extension.listIoTDevices",
+    "onCommand:extension.listDevices",
     "onCommand:extension.setDeviceName",
     "onCommand:extension.restartDevice",
     "onCommand:extension.runCommand",
@@ -65,6 +65,14 @@
           ],
           "default": null,
           "description": "Name of the target Windows IoT Core device"
+        },
+        "iot.Device.ListFilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Filter string to match device name or ip address"
         },
         "iot.Device.UserName": {
           "type": [
@@ -127,8 +135,8 @@
         "title": "iot: Get Workspace Info"
       },
       {
-        "command": "extension.listIoTDevices",
-        "title": "iot: List IoT Devices"
+        "command": "extension.listDevices",
+        "title": "iot: List Devices"
       },
       {
         "command": "extension.restartDevice",

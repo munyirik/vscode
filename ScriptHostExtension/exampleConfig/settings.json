@@ -5,7 +5,8 @@
             "IpAddress": "10.127.128.129",
             "DeviceName": "mydevice",
             "UserName": "Administrator",
-            "Password": "p@ssw0rd"
+            "Password": "p@ssw0rd",
+            "ListFilter": "username_or_ipaddr_substr"
         },
         "Deployment" : {
             "Files": [
