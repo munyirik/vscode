@@ -1,0 +1,16 @@
+{
+  "name": "node-script-host",
+  "version": "0.0.0",
+  "private": true,
+  "main": "app.js",
+  "description": "NodeScriptHost",
+  "author": {
+    "name": "paulmon",
+    "email": ""
+  },
+  "dependencies": {
+    "johnny-five": "^0.9.14"
+  }
+}
+
+

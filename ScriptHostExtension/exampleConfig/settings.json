@@ -1,0 +1,29 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "iot" : {
+        "Device" : {
+            "IpAddress": "10.127.128.129",
+            "DeviceName": "mydevice",
+            "UserName": "Administrator",
+            "Password": "p@ssw0rd",
+            "ListFilter": "username_or_ipaddr_substr"
+        },
+        "Deployment" : {
+            "Files": [
+                "index.js",
+                "package.json"
+            ],
+            "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
+        },
+        "RunCommands": [
+            "iotstartup list",
+            "iotstartup add headless NodeScriptHost",
+            "iotstartup remove headless NodeScriptHost",
+            "deployappx getpackages|findstr -i nodescripthost",
+            "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
+            "dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\package.json"
+        ]
+    }
+}

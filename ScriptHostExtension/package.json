@@ -1,0 +1,193 @@
+{
+  "name": "windowsiot",
+  "displayName": "Windows Iot Core Extension for VS Code",
+  "description": "Description of Windows IoT Core extension",
+  "icon": "images/iotCoreLogo.svg",
+  "version": "0.0.10",
+  "publisher": "ms-iot",
+  "license": "MS-PL",
+  "preview": true,
+  "engines": {
+    "vscode": "^0.10.10"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "microsoft",
+    "windows",
+    "iot",
+    "core"
+  ],
+  "activationEvents": [
+    "onCommand:extension.getAppxProcessInfo",
+    "onCommand:extension.getDeviceInfo",
+    "onCommand:extension.getDeviceName",
+    "onCommand:extension.getExtensionInfo",
+    "onCommand:extension.getPackages",
+    "onCommand:extension.getProcessInfo",
+    "onCommand:extension.getWorkspaceInfo",
+    "onCommand:extension.initSettings",
+    "onCommand:extension.listDevices",
+    "onCommand:extension.setDeviceName",
+    "onCommand:extension.restartDevice",
+    "onCommand:extension.runCommand",
+    "onCommand:extension.runCommandFromSettings",
+    "onCommand:extension.runRemoteScript",
+    "onCommand:extension.startNodeScriptHost",
+    "onCommand:extension.stopNodeScriptHost",
+    "onCommand:extension.uploadWorkspaceFiles"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "configuration": {
+      "title": "iot configuration",
+      "properties": {
+        "iot.Device.IpAddress": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "IP Address of the target Windows IoT Core device"
+        },
+        "iot.Device.Port": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Port for workspace application"
+        },
+        "iot.Device.DeviceName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Name of the target Windows IoT Core device"
+        },
+        "iot.Device.ListFilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Filter string to match device name or ip address"
+        },
+        "iot.Device.UserName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "User name on the target Windows IoT Core device"
+        },
+        "iot.Device.Password": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Password on the target Windows IoT Core device"
+        },
+        "iot.Deployment.Files": {
+          "type": "array",
+          "description": "Files to upload"
+        },
+        "iot.Deployment.LaunchBrowserPage": {
+          "type": ["string", "null"],
+          "default": null,
+          "description": "Browser page to launch after deployment"
+        },
+        "iot.RunCommands": {
+          "type": "array",
+          "title": "List of commands"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "extension.getAppxProcessInfo",
+        "title": "iot: Get APPX Process Info"
+      },
+      {
+        "command": "extension.getDeviceInfo",
+        "title": "iot: Get Device Info"
+      },
+      {
+        "command": "extension.getDeviceName",
+        "title": "iot: Get Device Name"
+      },
+      {
+        "command": "extension.getExtensionInfo",
+        "title": "iot: Get Extension Info"
+      },
+      {
+        "command": "extension.getPackages",
+        "title": "iot: Get Installed Packages"
+      },
+      {
+        "command": "extension.getProcessInfo",
+        "title": "iot: Get Process Info"
+      },
+      {
+        "command": "extension.getWorkspaceInfo",
+        "title": "iot: Get Workspace Info"
+      },
+      {
+        "command": "extension.initSettings",
+        "title": "iot: Initialize settings.json"
+      },
+      {
+        "command": "extension.listDevices",
+        "title": "iot: List Devices"
+      },
+      {
+        "command": "extension.restartDevice",
+        "title": "iot: Restart Device"
+      },
+      {
+        "command": "extension.runCommand",
+        "title": "iot: Run Command Prompt"
+      },
+      {
+        "command": "extension.runCommandFromSettings",
+        "title": "iot: Run Command List"
+      },
+      {
+        "command": "extension.runRemoteScript",
+        "title": "iot: Run Remote Script"
+      },
+      {
+        "command": "extension.setDeviceName",
+        "title": "iot: Set Device Name"
+      },
+      {
+        "command": "extension.startNodeScriptHost",
+        "title": "iot: Start Node Script Host"
+      },
+      {
+        "command": "extension.stopNodeScriptHost",
+        "title": "iot: Stop Node Script Host"
+      },
+      {
+        "command": "extension.uploadWorkspaceFiles",
+        "title": "iot: Upload Workspace Files"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "dependencies": {
+    "delay": "^1.3.1",
+    "request": "^2.72.0"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.5",
+    "vscode": "^0.11.0"
+  }
+}
