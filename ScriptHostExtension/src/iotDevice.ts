@@ -7,7 +7,6 @@ const dgram = require('dgram');
 const path = require('path');
 const request = require('request');
 const spawn = require('child_process').spawn;
-const util = require('util');
 
 const iotOutputChannel = vscode.window.createOutputChannel('IoT');
 
@@ -241,8 +240,8 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            const req = request.get(url, param, function (err, resp, body) {
-                if (!err && resp.statusCode == 200) 
+            request.get(url, param, function (err, resp, body) {
+                if (!err && resp.statusCode === 200) 
                 {
                     const info = JSON.parse(body);
                     resolve(info);
@@ -255,7 +254,7 @@ export class IotDevice
                         iotOutputChannel.appendLine(err.message);
                         iotOutputChannel.appendLine( '' );
                     }
-                    else if (resp && resp.statusCode != 200)
+                    else if (resp && resp.statusCode !== 200)
                     {
                         const info = JSON.parse(body);
                         iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
@@ -271,20 +270,20 @@ export class IotDevice
         return new Promise<any>( (resolve, reject) =>
         {
             let appxDetail: any;
-            if (architecture == "x86")
+            if (architecture === "x86")
             {
                 appxDetail = appx.x86;
             }
-            else if (architecture == "amd64")
+            else if (architecture === "amd64")
             {
                 appxDetail = appx.x64;
             }
-            else if (architecture == "arm")
+            else if (architecture === "arm")
             {
                 appxDetail = appx.arm;
             }
 
-            if (appxDetail != null)
+            if (appxDetail !== null)
             {
                 console.log( 'architecture=' + architecture );
                 console.log( 'package=' + appxDetail.package );
@@ -340,8 +339,8 @@ export class IotDevice
             let retries = maxRetries;
 
             (function GetDeviceNameCallback(){
-                const req = request.get(url, param, function (err, resp, body) {
-                    if (!err && resp.statusCode == 200) 
+                request.get(url, param, function (err, resp, body) {
+                    if (!err && resp.statusCode === 200) 
                     {
                         const info = JSON.parse(body);
                         let message = `Get Device Name:\nDevice=${this.host}\nComputerName=${info.ComputerName}\n`; 
@@ -356,7 +355,7 @@ export class IotDevice
                                 console.log(err.message);
                                 reject(err.message);
                             }
-                            else if (resp && resp.statusCode != 200)
+                            else if (resp && resp.statusCode !== 200)
                             {
                                 const info = JSON.parse(body);
                                 const message = info.Reason + ' status=' + resp.statusCode;
@@ -506,7 +505,6 @@ export class IotDevice
             });
 
             s.on('message', function(message, remote){
-                //iotOutputChannel.appendLine(`from=${remote.address}:${remote.port}\nmessage=${message}`);
                 IotDevice.UnpackEbootBuffer(message);
             });
 
@@ -531,8 +529,8 @@ export class IotDevice
             }};
 
             iotOutputChannel.show();
-            const req = request.post(url, param, function (err, resp, body) {
-                if (!err && resp.statusCode == 200) 
+            request.post(url, param, function (err, resp, body) {
+                if (!err && resp.statusCode === 200) 
                 {
                     iotOutputChannel.appendLine(`Set Device Name succeeded!`);
                     iotOutputChannel.appendLine( '' );
@@ -546,7 +544,7 @@ export class IotDevice
                         reject(err);
                     }
 
-                    if (resp.statusCode != 200)
+                    if (resp.statusCode !== 200)
                     {
                         const info = JSON.parse(body);
                         iotOutputChannel.appendLine(info.Reason + ' status=' + resp.statusCode);
@@ -569,8 +567,8 @@ export class IotDevice
 
             iotOutputChannel.show();
             const restarturl = 'http://' + this.host + ':8080/api/control/restart';
-            const restartreq = request.post(restarturl, param, function (err, resp, body) {
-                if (!err && resp.statusCode == 200) 
+            request.post(restarturl, param, function (err, resp, body) {
+                if (!err && resp.statusCode === 200) 
                 {
                     iotOutputChannel.appendLine(`Restarting device...`)
                     iotOutputChannel.appendLine( '' );
@@ -627,7 +625,7 @@ export class IotDevice
                         console.error(err.message);
                         reject(err.message);
                     } 
-                    else if (resp.statusCode != 200)
+                    else if (resp.statusCode !== 200)
                     {
                         let message = `ERROR: File upload failed: ${filename}\n`;
                         if (resp.body.length > 0)
@@ -685,7 +683,6 @@ export class IotDevice
                 let vscode_dir_cmd = 'dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState /s/b';
                 this.RunCommand(vscode_dir_cmd, false)
                 .then((output) =>{
-                    //console.log(output);
                     let installedFiles = output.split("\r\n");
                     installedFiles.forEach((file, index, array) => {
                         array[index] = file.replace("c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\", "");
@@ -695,7 +692,13 @@ export class IotDevice
                         if (relpath.indexOf("node_modules") < 0){ 
                             return true;
                         }
-                        return !installedFiles.find((value, index, array) => { if(value===relpath) return true; else return false; });
+                        return !installedFiles.find((value, index, array) => { 
+                            if(value===relpath) {
+                                return true;
+                            } else {
+
+                            return false; }
+                        });
                     })
                     resolve(foundFilesFiltered);
                 })                
@@ -712,7 +715,6 @@ export class IotDevice
 
         let architecture :string;
         let iotAppxDetail :any;
-        let iotFile :string
         let hostInstalled = false;
 
         return this.GetDeviceInfo().then((info) => {
@@ -766,7 +768,6 @@ export class IotDevice
     {
         return new Promise<any>( (resolve, reject) =>
         {
-            const config = vscode.workspace.getConfiguration('iot');               
             const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
             console.log ('url=' + url)
 
@@ -775,7 +776,7 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            const req = request.get(url, param, function (err, resp, body) {
+            request.get(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
@@ -822,7 +823,7 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            const req = request.get(url, param, function (err, resp, body) {
+            request.get(url, param, function (err, resp, body) {
                 if (err){
                     console.log(err.message);
                     iotOutputChannel.appendLine(err.message);
@@ -923,22 +924,7 @@ export class IotDevice
                 iotOutputChannel.appendLine(r);
             });
             iotOutputChannel.appendLine('');
-            //return vscode.workspace.findFiles("**/package.json","",null,null)
         })
-        // .then((results) =>{
-        //     results.forEach( r => {
-        //         iotOutputChannel.appendLine(`opening ${r}`);
-        //         vscode.workspace.openTextDocument(r)
-        //         .then((doc:any) =>{
-        //             iotOutputChannel.appendLine(`success:${doc}`);
-        //             vscode.window.showTextDocument(doc).then((editor :vscode.TextEditor)=>{
-        //                 editor.show
-        //             })   
-        //         }, function(err){
-        //             iotOutputChannel.appendLine(`error:${err}`);
-        //         })
-        //     });
-        // });
     }
 
     public PrintProcessInfo(info: any, appxOnly: boolean)
@@ -955,13 +941,13 @@ export class IotDevice
         info.Processes.forEach(proc => {
             if (!appxOnly || proc.PackageFullName) 
             {
-                if (proc.AppName) iotOutputChannel.appendLine( 'AppName: ' + proc.AppName );
-                if (proc.PackageFullName) iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName );
+                if (proc.AppName) { iotOutputChannel.appendLine( 'AppName: ' + proc.AppName ) };
+                if (proc.PackageFullName) { iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName ) };
                 if (!appxOnly)
                 {              
-                    if (proc.IsRunning) iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning );
-                    if (proc.Publisher) iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher );
-                    if (proc.Version) iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build);
+                    if (proc.IsRunning) { iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning ) };
+                    if (proc.Publisher) { iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher ) };
+                    if (proc.Version) { iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build) };
                     iotOutputChannel.appendLine( 'CPUUsage: ' + proc.CPUUsage );
                     iotOutputChannel.appendLine( 'ImageName: ' + proc.ImageName );
                     iotOutputChannel.appendLine( 'PageFileUsage: ' + proc.PageFileUsage );
@@ -1018,12 +1004,12 @@ export class IotDevice
                     iotOutputChannel.appendLine( '' );
                     reject(err);
                 } else {
-                    if (resp.statusCode == 200)
+                    if (resp.statusCode === 200)
                     {
                         iotOutputChannel.appendLine(`Successfully installed ${appxFile}`);
                         resolve(resp);
                     }
-                    else if (resp.statusCode == 202)
+                    else if (resp.statusCode === 202)
                     {
                         const info = JSON.parse(body);
                         console.log(info.Reason);
@@ -1073,12 +1059,12 @@ export class IotDevice
             'pass': this.password
         }};
 
-        const req = request.post(url, param, function (err, resp, body) {
+        request.post(url, param, function (err, resp, body) {
             if (err){
                 console.log(err.message);
                 reject(err.message);
             }
-            else if (resp.statusCode != 200)
+            else if (resp.statusCode !== 200)
             {
                 let message = `command=${command}\nstatusMessage=${resp.statusMessage}\nstatusCode=${resp.statusCode}\n`;
                 console.error(message);
@@ -1139,7 +1125,7 @@ export class IotDevice
     {
         let installed = false;
         info.InstalledPackages.some(appx => {
-            if (PackageRelativeId == appx.PackageRelativeId)
+            if (PackageRelativeId === appx.PackageRelativeId)
             {
                 installed = true;
                 return installed;
@@ -1152,7 +1138,7 @@ export class IotDevice
     {
         let running = false;
         info.Processes.some(proc => {
-            if (PackageFullName == proc.PackageFullName)
+            if (PackageFullName === proc.PackageFullName)
             {
                 running = true;
                 return running;
@@ -1224,7 +1210,7 @@ export class IotDevice
                 iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`); // TODO: this uses a hardcoded port so it's a hack
 
                 // launch browser (probably only works on windows)
-                const browser = spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
+                spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
             }
             else
             {
@@ -1244,7 +1230,7 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            const req = request.post(url, param, function (err, resp, body) {
+            request.post(url, param, function (err, resp, body) {
                 if (err){
                     reject(err);
                 } else {
@@ -1298,7 +1284,7 @@ export class IotDevice
                 'pass': this.password
             }};
 
-            const req = request.delete(url, param, function (err, resp, body) {
+            request.delete(url, param, function (err, resp, body) {
                 if (err){
                     reject(err);
                 } else {
@@ -1317,7 +1303,6 @@ export class IotDevice
                 return;
             }
             
-            const config = vscode.workspace.getConfiguration('iot');               
             const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
             console.log ('url=' + url)
 
@@ -1327,7 +1312,7 @@ export class IotDevice
             }};
 
             (function WaitForAppxInstallCallback(){
-                const req = request.get(url, param, function (err, resp, body) {
+                request.get(url, param, function (err, resp, body) {
                     if (err){
                         console.log(err.message);
                         iotOutputChannel.appendLine(err.message);
@@ -1336,8 +1321,6 @@ export class IotDevice
                         const info = JSON.parse(body);
                         if (IotDevice.IsInstalled(info, PackageRelativeId))
                         {
-                            let message = `Done waiting for ${PackageRelativeId} to install`;
-                            //delay(10000);
                             resolve(info);
                         }
                         else
@@ -1368,7 +1351,7 @@ export class IotDevice
             }};
 
             (function WaitForAppxStopCallback(){
-                const req = request.get(url, param, function (err, resp, body) {
+                request.get(url, param, function (err, resp, body) {
                     if (err){
                         console.log(err.message);
                         reject(err.message);
@@ -1403,7 +1386,7 @@ export class IotDevice
         }).then ((resp: any) => {
             iotOutputChannel.appendLine('Application Stopped');
             iotOutputChannel.appendLine( '' );
-        },function(err) {  // why no .catch?
+        },function(err) {  
             console.log(err.message);
             iotOutputChannel.appendLine(err.message);
             iotOutputChannel.appendLine( '' );
