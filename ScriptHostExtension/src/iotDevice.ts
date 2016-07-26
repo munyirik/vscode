@@ -41,6 +41,35 @@ const appx = {
     }
 };
 
+const defaultSettings = {
+    "iot" : {
+        "Device" : {
+            "IpAddress": "10.127.128.129",
+            "DeviceName": "mydevice",
+            "UserName": "Administrator",
+            "Password": "p@ssw0rd",
+            "ListFilter": "username_or_ipaddr_substr"
+        },
+        "Deployment" : {
+            "Files": [
+                "index.js",
+                "package.json"
+            ],
+            "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
+        },
+        "RunCommands": [
+            "iotstartup list",
+            "iotstartup add headless NodeScriptHost",
+            "iotstartup remove headless NodeScriptHost",
+            "deployappx getpackages|findstr -i nodescripthost",
+            "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
+            "dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js",
+            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\package.json"
+        ]
+    }
+}
+
 const host_len = 33;
 const ipv4_len = 4 * 4 + 1;
 const mac_len = 3 * 8 + 1;
@@ -800,6 +829,85 @@ export class IotDevice
                 } else {
                     const info = JSON.parse(body);
                     resolve(info);
+                }
+            });
+        });
+    }
+    
+    private OpenSettingsJson() :Promise<vscode.TextEditor>
+    {
+        return new Promise<vscode.TextEditor> ((resolve, reject) => {
+            vscode.workspace.findFiles(".vscode/settings.json","",1)
+            .then((results) =>{
+                results.forEach( r => {
+                    iotOutputChannel.appendLine(`opening ${r}`);
+                    vscode.workspace.openTextDocument(r)
+                    .then((doc:any) =>{
+                        iotOutputChannel.appendLine(`success:${doc}`);
+                        vscode.window.showTextDocument(doc).then((editor :vscode.TextEditor)=>{
+                            resolve(editor);
+                        })
+                    })
+                })
+            }, (err) =>{
+                reject(err);
+            });
+        })
+    }
+
+    public InitSettings() :Promise<string>
+    {
+        return new Promise((resolve,reject) => {
+            let settingsJson = vscode.workspace.rootPath + "/" + ".vscode/settings.json";
+            console.log(`settings.json=${settingsJson}`);
+
+            fs.exists(settingsJson, (exists) =>{
+                if (exists)
+                {
+                    this.OpenSettingsJson()
+                    .then((editor :vscode.TextEditor) => {
+                        let content = editor.document.getText();
+                        console.info(content);
+                        let settings :any = null;
+                        try{
+                            settings = JSON.parse(content);
+                        }
+                        catch(ex){
+                            iotOutputChannel.appendLine(ex);
+                        }
+                        if (!settings)
+                        {
+                            settings = defaultSettings;
+                            let newSettings = JSON.stringify(settings, null, 2);
+                            console.info(newSettings);
+                            editor.edit( (edit :vscode.TextEditorEdit ) => {
+                                //edit.delete(null);
+                                edit.insert(new vscode.Position(0,0), newSettings);
+                            })
+                            .then((result :boolean) =>{
+                                if (result)
+                                {
+                                    editor.document.save();
+                                }
+                            })
+                        };
+                    })   
+                }
+                else
+                {
+                    fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (err) => {
+                        if (err)
+                        {
+                            reject(err)
+                        }
+                        else
+                        {
+                            this.OpenSettingsJson()
+                            .then((editor :vscode.TextEditor) => {
+                                resolve ('settings.json created');
+                            })
+                        }
+                    });                    
                 }
             });
         });

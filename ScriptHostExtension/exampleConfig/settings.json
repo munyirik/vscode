@@ -11,8 +11,7 @@
         "Deployment" : {
             "Files": [
                 "index.js",
-                "package.json",
-                "startupinfo.xml"
+                "package.json"
             ],
             "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
         },

@@ -93,6 +93,19 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetDeviceName);
 
+    const disposableInitSettings = vscode.commands.registerCommand('extension.initSettings', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            return iotDevice.InitSettings();
+        })
+        .then((message: string) =>{
+            iotDevice.PrintMessage(message);
+        }, function(err){
+            iotDevice.PrintMessage(err);
+        });        
+    });
+    context.subscriptions.push(disposableInitSettings);
+
     const disposableListenEbootPinger = vscode.commands.registerCommand('extension.listDevices', () => {
         IotDevice.ListDevices();
     });
