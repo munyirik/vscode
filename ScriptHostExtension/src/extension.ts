@@ -13,6 +13,11 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Windows Iot Core Extension for VS Code is now active!');
 
+    // todo: conditionally contribute commands if debugger is attached?    
+    // let debug = typeof global.v8debug === 'object';
+    // const iotDevice = new IotDevice();
+    // iotDevice.PrintMessage(`Running under the debugger = ${debug}\n`);
+
     IotDevice.ListenEbootPinger();
 
     // The commands are defined in the package.json file

@@ -1,12 +1,26 @@
 {
 	"rules": {
+		"align": [true, "parameters"],
+		"arrow-parens": true, 
+		"class-name": true,
+		"comment-format": [true, "check-space", "check-lowercase"],
+		"curly": true,
+		"indent": [true, "spaces"],
+		"new-parens": true,
 		"no-unused-expression": true,
 		"no-unreachable": true,
 		"no-duplicate-variable": true,
 		"no-duplicate-key": true,
+		"no-trailing-whitespace": true,
 		"no-unused-variable": true,
-		"curly": true,
-		"class-name": true,
-		"triple-equals": true
+		"no-use-before-declare": true,
+		"no-var-keyword": true,
+		"only-arrow-functions": true,
+		"quotemark": [true, "single", "avoid-escape"],
+		"semicolon": [true, "always"],
+		"triple-equals": true,
+		"use-strict": [true, "check-function", "check-module"],
+		"variable-name": [ true, "check-format", "ban-keywords"],
+		"whitespace": [ true, "check-branch", "check-decl", "check-module", "check-operator", "check-separator", "check-type", "check-typecast"]
 	}
 }
