@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import fs = require('fs');
 
+const delay = require('delay');
 const dgram = require('dgram');
 const path = require('path');
 const request = require('request');
@@ -859,46 +860,56 @@ export class IotDevice
     public InitSettings() :Promise<string>
     {
         return new Promise((resolve,reject) => {
-            let settingsJson = vscode.workspace.rootPath + "/" + ".vscode/settings.json";
+            let vscodeDir = vscode.workspace.rootPath + '/.vscode';
+            let settingsJson = vscodeDir + '/settings.json';
+
+            console.log(`settings.json=${vscodeDir}`);
             console.log(`settings.json=${settingsJson}`);
 
-            fs.exists(settingsJson, (exists) =>{
-                if (exists)
+            fs.exists(vscodeDir, (exists) => {
+                if (!exists)
                 {
-                    this.OpenSettingsJson()
-                    .then((editor :vscode.TextEditor) => {
-                        // can't parse any JSON with comments so just tell the user they already have a settings file
-                        resolve('WARNING: settings.json found.\nTo generate the template settings.json delete your current settings.json before running this command.\n');
-                    }, (err) => {
-                        reject(err.message);
-                    })
+                    fs.mkdirSync(vscodeDir);
                 }
-                else
-                {
-                    let newSettings = defaultSettings;
-                    newSettings.iot.Device.IpAddress = this.host;
-                    newSettings.iot.Device.DeviceName = this.devName;
-                    newSettings.iot.Device.UserName = this.user;
-                    newSettings.iot.Device.Password = this.password;
-                    newSettings.iot.Deployment.LaunchBrowserPageNo = `http://${this.host}:1337/`;
-                    
-                    fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (err) => {
-                        if (err)
-                        {
+
+                fs.exists(settingsJson, (exists) =>{
+                    if (exists)
+                    {
+                        this.OpenSettingsJson()
+                        .then((editor :vscode.TextEditor) => {
+                            // can't parse any JSON with comments so just tell the user they already have a settings file
+                            resolve('WARNING: settings.json found.\nTo generate the template settings.json delete your current settings.json before running this command.\n');
+                        }, (err) => {
                             reject(err.message);
-                        }
-                        else
-                        {
-                            this.OpenSettingsJson()
-                            .then((editor :vscode.TextEditor) => {
-                                resolve ('settings.json created\n');
-                            }, (err) =>{
+                        })
+                    }
+                    else
+                    {
+                        let newSettings = defaultSettings;
+                        newSettings.iot.Device.IpAddress = this.host;
+                        newSettings.iot.Device.DeviceName = this.devName;
+                        newSettings.iot.Device.UserName = this.user;
+                        newSettings.iot.Device.Password = this.password;
+                        newSettings.iot.Deployment.LaunchBrowserPageNo = `http://${this.host}:1337/`;
+                        
+                        fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (err) => {
+                            if (err)
+                            {
                                 reject(err.message);
-                            })
-                        }
-                    });
-                }
-            });
+                            }
+                            else
+                            {
+                                this.OpenSettingsJson()
+                                .then((editor :vscode.TextEditor) => {
+                                    resolve ('settings.json created\n');
+                                }, (err) =>{
+                                    reject(err.message);
+                                })
+                            }
+                        });
+                    }
+                });
+            })
         });
     }
 
@@ -1193,10 +1204,12 @@ export class IotDevice
             let launchBrowserPage = config.get('Deployment.LaunchBrowserPage', '');
             if (launchBrowserPage)
             {
-                iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`);
+                delay(3000).then(()=>{
+                    iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`);
 
-                // launch browser (probably only works on windows)
-                spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
+                    // launch browser (probably only works on windows)
+                    spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
+                })
             }
             else
             {
