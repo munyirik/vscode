@@ -4,40 +4,12 @@
 1. md c:\blinky (directory name/location isn’t important)
 1. cd c:\blinky
 1. npm init (accept all defaults)
-1. 'code .'
-1. F1 -> Preferences: Open Workspace Settings
-1. Add this to settings.json
-
-    ``` json
-    {
-        "iot" : {
-            "Device" : {
-                "IpAddress": "10.127.127.1",
-                "DeviceName": "<devicename>",
-                "UserName": "Administrator",
-                "Password": "p@ssw0rd"
-            },
-            "Deployment" : {
-                "Files": [
-                    "index.js",
-                    "package.json"
-                ],
-                "LaunchBrowserPageNo": "http://10.137.184.44:1337/"
-            },
-            "RunCommands": [
-                "iotstartup list",
-                "iotstartup add headless NodeScriptHost",
-                "iotstartup remove headless NodeScriptHost",
-                "deployappx getpackages|findstr -i nodescripthost",
-                "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp"
-            ]
-
-        }
-    }
-    ```
-
+1. 'code &nbsp; .'
+1. F1 -> iot: Initialize settings.json
+1. Enter device ip address and desired name
+1. Enter the username and password to log into the device with. The defaults are "Administrator" and "p@ssw0rd".  If you prefer not to have your username and/or password in a plain text file delete these lines from the generated .json file and you will be prompted each time they are needed.
 1. Wire your circuit as described [here](https://developer.microsoft.com/en-us/windows/iot/win10/samples/blinky)
-1. Add a new file to the workspace by clicking the icon found here. Name it server.js
+1. Add a new file to the workspace by clicking the icon found here. Name it index.js or whatever filename you provided in npm.init.
 
     ![NewFile](images/NewFile.png)
 
@@ -45,7 +17,6 @@
 
     ```   
     // Copyright (c) Microsoft. All rights reserved.
-
 
     var http = require('http');
 
@@ -78,40 +49,12 @@
 1. md c:\hello (directory name/location isn’t important)
 1. cd c:\hello
 1. npm init (accept all defaults)
-1. 'code .'
-1. F1 -> Preferences: Open Workspace Settings
-1. Add this to settings.json
-
-    ``` json
-    {
-        "iot" : {
-            "Device" : {
-                "IpAddress": "10.127.127.1",
-                "DeviceName": "<devicename>",
-                "UserName": "Administrator",
-                "Password": "p@ssw0rd"
-            },
-            "Deployment" : {
-                "Files": [
-                    "index.js",
-                    "package.json"
-                ],
-                "LaunchBrowserPageNo": "http://10.137.184.44:1337/"
-            },
-            "RunCommands": [
-                "iotstartup list",
-                "iotstartup add headless NodeScriptHost",
-                "iotstartup remove headless NodeScriptHost",
-                "deployappx getpackages|findstr -i nodescripthost",
-                "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp"
-            ]
-
-        }
-    }
-    ```
-
-1. Wire your circuit as described [here](https://developer.microsoft.com/en-us/windows/iot/win10/samples/blinky)
-1. Add a new file to the workspace by clicking the icon found here. Name it server.js
+1. 'code &nbsp; .'
+1. F1 -> iot: Initialize settings.json
+1. Enter device ip address and desired name
+1. Enter the username and password to log into the device with. The defaults are "Administrator" and "p@ssw0rd".  If you prefer not to have your username and/or password in a plain text file delete these lines from the generated .json file and you will be prompted each time they are needed.
+1. Change LaunchBrowserPageNo in settings.json to LaunchBrowserPage
+1. Add a new file to the workspace by clicking the icon found here. Name it index.js or whatever filename you provided in npm.init.
 
     ![NewFile](images/NewFile.png)
 
