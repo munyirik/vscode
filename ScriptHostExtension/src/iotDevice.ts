@@ -229,6 +229,7 @@ export class IotDevice
         iotOutputChannel.appendLine('ext.id=' + ext.id);
         iotOutputChannel.appendLine('version='+ext.packageJSON.version);
         iotOutputChannel.appendLine('');
+        this.ListIotCommands();
     }
 
     public GetDeviceInfo() : Thenable<any>
@@ -1389,5 +1390,17 @@ export class IotDevice
             iotOutputChannel.appendLine(err.message);
             iotOutputChannel.appendLine( '' );
         });
+    }
+
+    public ListIotCommands()
+    {
+        let ext = vscode.extensions.getExtension('ms-iot.windowsiot');
+        iotOutputChannel.show();
+        var commands = ext.packageJSON.contributes.commands;
+        iotOutputChannel.appendLine('IoT Extension Commands:')
+        commands.forEach(c => {
+            iotOutputChannel.appendLine(c.title)
+        })
+        iotOutputChannel.appendLine('');
     }
 }

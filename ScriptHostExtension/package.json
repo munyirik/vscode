@@ -3,7 +3,7 @@
     "displayName": "Windows Iot Core Extension for VS Code",
     "description": "Description of Windows IoT Core extension",
     "icon": "images/iotCoreLogo.svg",
-    "version": "0.0.12",
+    "version": "0.0.14",
     "publisher": "ms-iot",
     "license": "MS-PL",
     "preview": true,
