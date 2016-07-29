@@ -12,90 +12,97 @@ const spawn = require('child_process').spawn;
 const iotOutputChannel = vscode.window.createOutputChannel('IoT');
 
 const appx = {
-    "arm" : {
-        "id": "NodeScriptHost_dnsz84vs3g3zp!App",
-        "packageFullName": "NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp",
-        "package": "NodeScriptHost_1.0.0.0_ARM.appx",
-        "certificate": "NodeScriptHost_1.0.0.0_ARM.cer",
-        "dependencies": [
-            "Microsoft.VCLibs.ARM.14.00.appx"
-        ]
+    'arm' : {
+        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
+        'packageFullName': 'NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.0.0_ARM.appx',
+        'certificate': 'NodeScriptHost_1.0.0.0_ARM.cer',
+        'dependencies': [
+            'Microsoft.VCLibs.ARM.14.00.appx',
+        ],
     },
-    "x86" : {
-        "id": "NodeScriptHost_dnsz84vs3g3zp!App",
-        "packageFullName": "NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
-        "package": "NodeScriptHost_1.0.0.0_x86.appx",
-        "certificate": "NodeScriptHost_1.0.0.0_x86.cer",
-        "dependencies": [
-            "Microsoft.VCLibs.x86.14.00.appx"
-        ]
+    'x86' : {
+        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
+        'packageFullName': 'NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.0.0_x86.appx',
+        'certificate': 'NodeScriptHost_1.0.0.0_x86.cer',
+        'dependencies': [
+            'Microsoft.VCLibs.x86.14.00.appx',
+        ],
     },
-    "x64" : {
-        "id": "NodeScriptHost_dnsz84vs3g3zp!App",
-        "packageFullName": "NodeScriptHost_1.0.0.0_x64__dnsz84vs3g3zp",
-        "package": "NodeScriptHost_1.0.0.0_x64.appx",
-        "certificate": "NodeScriptHost_1.0.0.0_x64.cer",
-        "dependencies": [
-            "Microsoft.VCLibs.x64.14.00.appx"
-        ]
-    }
+    'x64' : {
+        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
+        'packageFullName': 'NodeScriptHost_1.0.0.0_x64__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.0.0_x64.appx',
+        'certificate': 'NodeScriptHost_1.0.0.0_x64.cer',
+        'dependencies': [
+            'Microsoft.VCLibs.x64.14.00.appx',
+        ],
+    },
 };
 
 const defaultSettings = {
-    "iot" : {
-        "Device" : {
-            "IpAddress": "10.127.128.129",
-            "DeviceName": "mydevice",
-            "UserName": "Administrator",
-            "Password": "p@ssw0rd",
-            "ListFilter": null
+    'iot' : {
+        'Device' : {
+            'IpAddress': '10.127.128.129',
+            'DeviceName': 'mydevice',
+            'UserName': 'Administrator',
+            'Password': 'p@ssw0rd',
+            'ListFilter': null,
         },
-        "Deployment" : {
-            "Files": [
-                "index.js",
-                "package.json"
+        'Deployment' : {
+            'Files': [
+                'index.js',
+                'package.json',
             ],
-            "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
+            'LaunchBrowserPageNo': 'http://10.137.187.40:1337/',
         },
-        "RunCommands": [
-            "iotstartup list",
-            "iotstartup add headless NodeScriptHost",
-            "iotstartup remove headless NodeScriptHost",
-            "deployappx getpackages|findstr -i nodescripthost",
-            "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
-            "deployappx uninstall NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp"
-        ]
-    }
-}
+        'RunCommands': [
+            'iotstartup list',
+            'iotstartup add headless NodeScriptHost',
+            'iotstartup remove headless NodeScriptHost',
+            'deployappx getpackages|findstr -i nodescripthost',
+            'deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp',
+            'deployappx uninstall NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp',
+        ],
+    },
+};
 
-const host_len = 33;
-const ipv4_len = 4 * 4 + 1;
-const mac_len = 3 * 8 + 1;
-const id_len = 40;
-const model_len = 50;
-const version_len = 50;
-const arch_len = 8;
+const hostLen = 33;
+const ipv4Len = 4 * 4 + 1;
+const macLen = 3 * 8 + 1;
+const idLen = 40;
+const modelLen = 50;
+const versionLen = 50;
+const archLen = 8;
 
-const host_offset    = 0;
-const ipv4_offset    = host_len;
-const mac_offset     = host_len + ipv4_len;
-const id_offset      = mac_offset + mac_len;
-const model_offset   = id_offset + id_len;
-const version_offset = model_offset + model_len;
-const arch_offset    = version_offset + version_len;
+const hostOffset    = 0;
+const ipv4Offset    = hostLen;
+const macOffset     = hostLen + ipv4Len;
+const idOffset      = macOffset + macLen;
+const modeOffset   = idOffset + idLen;
+const versionOffset = modeOffset + modelLen;
+const archOffset    = versionOffset + versionLen;
 
-class HostInfo
-{
-    public host :string;
-    public seen :Number;
-    public mac :string;
-    public id :string;
-    public model :string;
-    public version :string;
-    public arch :string;
+class HostInfo {
 
-    constructor(hostName :string, lastSeen :Number, mac :string, id :string, model :string, version :string, arch :string)
-    {
+    public host: string;
+    public seen: Number;
+    public mac: string;
+    public id: string;
+    public model: string;
+    public version: string;
+    public arch: string;
+
+    constructor(
+        hostName: string,
+        lastSeen: Number,
+        mac: string,
+        id: string,
+        model: string,
+        version: string,
+        arch: string) {
+
         this.host = hostName;
         this.seen = lastSeen;
         this.mac = mac;
@@ -106,54 +113,53 @@ class HostInfo
     }
 }
 
-export class IotDevice
-{
-    private host :string;
-    private devName :string;
-    private user :string;
-    private password :string;
+export class IotDevice {
+
     private static listeningForEboot = false;
-    private static iotDeviceList :Map<string, HostInfo>;
+    private static iotDeviceList: Map<string, HostInfo>;
 
-    constructor()
-    {
-    }
+    private host: string;
+    private devName: string;
+    private user: string;
+    private password: string;
 
-    public Init() : Thenable<boolean>
+    // constructor() { }
+
+    public Init(): Thenable<boolean>
     {
-        return this.GetHost().then((hostResult :string) => {
+        return this.GetHost().then((hostResult: string) => {
             this.host = hostResult;
             return this.GetDevName();
-        }).then( (devName :string) => {
+        }).then( (devName: string) => {
             this.devName = devName;
             return this.GetUserName();
-        }).then( (userResult :string) => {
+        }).then( (userResult: string) => {
             this.user = userResult;
             return this.GetPassword();
-        }).then( (passwordResult :string) => {
+        }).then( (passwordResult: string) => {
             this.password = passwordResult;
             return new Promise<boolean>((resolve, reject) => {
                 resolve(true);
-            })
+            });
         });
     }
 
-    public ArchitectureFromDeviceInfo(info: any) :string
+    public ArchitectureFromDeviceInfo(info: any): string
     {
         const osVersionTokens = info.OsVersion.split('.');
         const token2 = osVersionTokens[2];
-        let architecture = token2.substr(0,token2.length-3);
-        if (architecture === "woa")
+        let architecture = token2.substr(0, token2.length - 3);
+        if (architecture === 'woa')
         {
-            architecture = "arm";
+            architecture = 'arm';
         }
         return architecture;
     }
 
-    public GetDevName() : Thenable<string>
+    public GetDevName(): Thenable<string>
     {
         const config = vscode.workspace.getConfiguration('iot');
-        const deviceName :string = config.get('Device.DeviceName', '');
+        const deviceName: string = config.get('Device.DeviceName', '');
         if (deviceName)
         {
             return new Promise<string> ( (resolve, reject) => {
@@ -162,14 +168,14 @@ export class IotDevice
         }
         else
         {
-            return vscode.window.showInputBox({"placeHolder":"device name", "prompt":"Enter Device Name"});
+            return vscode.window.showInputBox({'placeHolder': 'device name', 'prompt': 'Enter Device Name'});
         }
     }
 
-    public GetHost() : Thenable<string>
+    public GetHost(): Thenable<string>
     {
         const config = vscode.workspace.getConfiguration('iot');
-        const host :string = config.get('Device.IpAddress', '');
+        const host: string = config.get('Device.IpAddress', '');
         if (host)
         {
             return new Promise<string> ((resolve, reject) => {
@@ -178,14 +184,14 @@ export class IotDevice
         }
         else
         {
-            return vscode.window.showInputBox({"placeHolder":"device ip address", "prompt":"Enter IP Address"});
+            return vscode.window.showInputBox({'placeHolder': 'device ip address', 'prompt': 'Enter IP Address'});
         }
     }
 
-    public GetUserName() : Thenable<string>
+    public GetUserName(): Thenable<string>
     {
         const config = vscode.workspace.getConfiguration('iot');
-        const userName :string = config.get('Device.UserName', '');
+        const userName: string = config.get('Device.UserName', '');
         if (userName)
         {
             return new Promise<string> ((resolve, reject) => {
@@ -194,14 +200,14 @@ export class IotDevice
         }
         else
         {
-            return vscode.window.showInputBox({"placeHolder":"user name", "prompt":"Enter Device User Name"});
+            return vscode.window.showInputBox({'placeHolder': 'user name', 'prompt': 'Enter Device User Name'});
         }
     }
 
-    public GetPassword() : Thenable<string>
+    public GetPassword(): Thenable<string>
     {
         const config = vscode.workspace.getConfiguration('iot');
-        const password :string = config.get('Device.Password', '');
+        const password: string = config.get('Device.Password', '');
         if (password)
         {
             return new Promise<string> ((resolve, reject) => {
@@ -210,13 +216,13 @@ export class IotDevice
         }
         else
         {
-            return vscode.window.showInputBox({"placeHolder":"password", "prompt":"Enter Device Password"});
+            return vscode.window.showInputBox({'placeHolder': 'password', 'prompt': 'Enter Device Password'});
         }
     }
 
-    private FileFromPath(path :string) :string
+    private FileFromPath(filePath: string): string
     {
-        const filename = path.replace(/^.*[\\\/]/, '');
+        const filename = filePath.replace(/^.*[\\\/]/, '');
         return filename;
     }
 
@@ -227,21 +233,21 @@ export class IotDevice
         iotOutputChannel.appendLine('ext.extensionPath=' + ext.extensionPath);
         // iotOutputChannel.appendLine('ext.exports=' + ext.exports);
         iotOutputChannel.appendLine('ext.id=' + ext.id);
-        iotOutputChannel.appendLine('version='+ext.packageJSON.version);
+        iotOutputChannel.appendLine('version=' + ext.packageJSON.version);
         iotOutputChannel.appendLine('');
         this.ListIotCommands();
     }
 
-    public GetDeviceInfo() : Thenable<any>
+    public GetDeviceInfo(): Thenable<any>
     {
         return new Promise<any>( (resolve, reject) =>
         {
             const url = 'http://' + this.host + ':8080/api/os/info';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             request.get(url, param, (err, resp, body) => {
@@ -269,20 +275,20 @@ export class IotDevice
         });
     }
 
-    public GetAppxInfo(architecture: string) : Thenable<any>
+    public GetAppxInfo(architecture: string): Thenable<any>
     {
         return new Promise<any>( (resolve, reject) =>
         {
             let appxDetail: any;
-            if (architecture === "x86")
+            if (architecture === 'x86')
             {
                 appxDetail = appx.x86;
             }
-            else if (architecture === "amd64")
+            else if (architecture === 'amd64')
             {
                 appxDetail = appx.x64;
             }
-            else if (architecture === "arm")
+            else if (architecture === 'arm')
             {
                 appxDetail = appx.arm;
             }
@@ -293,8 +299,8 @@ export class IotDevice
                 console.log( 'package=' + appxDetail.package );
                 console.log( 'certificate=' + appxDetail.certificate );
                 console.log( 'dependencies=' );
-                appxDetail.dependencies.forEach(dep => {
-                    console.log( "  " + dep );
+                appxDetail.dependencies.forEach((dep) => {
+                    console.log( '  ' + dep );
                 });
                 console.log( '' );
                 resolve(appxDetail);
@@ -322,32 +328,35 @@ export class IotDevice
         iotOutputChannel.appendLine( '' );
     }
 
-    public PrintMessage(message :string)
+    public PrintMessage(message: string)
     {
         iotOutputChannel.show();
         iotOutputChannel.appendLine(message);
     }
 
-    public GetDeviceName(maxRetries :number) :Promise<any>
+    public GetDeviceName(maxRetries: number): Promise<any>
     {
         return new Promise<any>( (resolve, reject) =>
         {
             const url = 'http://' + this.host + ':8080/api/os/machinename';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             let retries = maxRetries;
+            let host = this.host;
 
+            /* tslint:disable:only-arrow-functions */
             (function GetDeviceNameCallback(){
+                /* tslint:enable:only-arrow-functions */
                 request.get(url, param, (err, resp, body) => {
                     if (!err && resp.statusCode === 200)
                     {
                         const info = JSON.parse(body);
-                        let message = `Get Device Name:\nDevice=${this.host}\nComputerName=${info.ComputerName}\n`;
+                        let message = `Get Device Name:\nDevice=${host}\nComputerName=${info.ComputerName}\n`;
                         resolve(message);
                     }
                     else
@@ -375,18 +384,18 @@ export class IotDevice
 
     public static ListDevicesCallback()
     {
-        iotOutputChannel.appendLine("List IoT Devices");
+        iotOutputChannel.appendLine('List IoT Devices');
         const spaces = '                                                                           ';
         let col1 = 0;
         let hostWidth = 0;
         let modelWidth = 0;
 
         // remove devices which haven't been seen recently
-        const maxAge = 10*1000;
+        const maxAge = 10 * 1000;
         let ageThreshold = Number(new Date()) - maxAge;
-        IotDevice.iotDeviceList.forEach( (info :HostInfo, index :string, map :Map<string,HostInfo>) =>
+        IotDevice.iotDeviceList.forEach( (info: HostInfo, index: string, map: Map<string, HostInfo>) =>
         {
-            if(info.seen < ageThreshold)
+            if (info.seen < ageThreshold)
             {
                 map.delete(index);
             }
@@ -395,52 +404,53 @@ export class IotDevice
         // adjust col1 width
         IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
-            col1 = (col1>index.length)?col1:index.length;
+            col1 = (col1 > index.length) ? col1 : index.length;
         });
-        col1 = (spaces.length < col1+2)?spaces.length:(col1+2);
+        col1 = (spaces.length < col1 + 2) ? spaces.length : (col1 + 2);
 
         // adjust host width
         IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
-            hostWidth = (hostWidth>info.host.length)?hostWidth:info.host.length;
+            hostWidth = (hostWidth > info.host.length) ? hostWidth : info.host.length;
         });
-        hostWidth = (spaces.length < hostWidth+2)?spaces.length:(hostWidth+2);
+        hostWidth = (spaces.length < hostWidth + 2) ? spaces.length : (hostWidth + 2);
 
         // adjust model width
         IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
-            modelWidth = (modelWidth>info.model.length)?modelWidth:info.model.length;
+            modelWidth = (modelWidth > info.model.length) ? modelWidth : info.model.length;
         });
-        modelWidth = (spaces.length < modelWidth+2)?spaces.length:(modelWidth+2);
+        modelWidth = (spaces.length < modelWidth + 2) ? spaces.length : (modelWidth + 2);
 
         IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
-            col1 = (col1>index.length)?col1:index.length;
+            col1 = (col1 > index.length) ? col1 : index.length;
         });
-        col1 = (spaces.length < col1+2)?spaces.length:(col1+2);
+        col1 = (spaces.length < col1 + 2) ? spaces.length : (col1 + 2);
 
         const config = vscode.workspace.getConfiguration('iot');
-        let deviceFilter :string = config.get('Device.ListFilter', '');
+        let deviceFilter: string = config.get('Device.ListFilter', '');
         iotOutputChannel.show();
         IotDevice.iotDeviceList.forEach( (info, index, map) =>
         {
             if (!deviceFilter ||
-                ((index.indexOf(deviceFilter) >= 0) ||  (IotDevice.iotDeviceList.get(index).host.indexOf(deviceFilter) >= 0)))
+                ((index.indexOf(deviceFilter) >= 0) ||
+                (IotDevice.iotDeviceList.get(index).host.indexOf(deviceFilter) >= 0)))
             {
-                iotOutputChannel.append(index)
-                iotOutputChannel.append(spaces.substr(0, col1-index.length));
+                iotOutputChannel.append(index);
+                iotOutputChannel.append(spaces.substr(0, col1 - index.length));
                 iotOutputChannel.append(map.get(index).host);
-                iotOutputChannel.append(spaces.substr(0, hostWidth-map.get(index).host.length));
+                iotOutputChannel.append(spaces.substr(0, hostWidth - map.get(index).host.length));
                 iotOutputChannel.append(map.get(index).model);
-                iotOutputChannel.append(spaces.substr(0, modelWidth-map.get(index).model.length));
+                iotOutputChannel.append(spaces.substr(0, modelWidth - map.get(index).model.length));
                 iotOutputChannel.append(map.get(index).arch);
-                iotOutputChannel.append(spaces.substr(0, arch_len-map.get(index).arch.length));
+                iotOutputChannel.append(spaces.substr(0, archLen - map.get(index).arch.length));
                 iotOutputChannel.append(map.get(index).mac);
-                iotOutputChannel.append(spaces.substr(0, mac_len-map.get(index).mac.length));
+                iotOutputChannel.append(spaces.substr(0, macLen - map.get(index).mac.length));
                 // iotOutputChannel.append(map.get(index).id);
-                // iotOutputChannel.append(spaces.substr(0, id_len-map.get(index).id.length));
+                // iotOutputChannel.append(spaces.substr(0, idLen-map.get(index).id.length));
                 // iotOutputChannel.append(map.get(index).version);
-                // iotOutputChannel.append(spaces.substr(0, version_len-map.get(index).version.length));
+                // iotOutputChannel.append(spaces.substr(0, versionLen-map.get(index).version.length));
                 iotOutputChannel.appendLine('');
             }
         });
@@ -454,43 +464,43 @@ export class IotDevice
         if (IotDevice.iotDeviceList.size === 0)
         {
             iotOutputChannel.show();
-            iotOutputChannel.appendLine('Initializing device list...\n')
+            iotOutputChannel.appendLine('Initializing device list...\n');
         }
-        setTimeout(IotDevice.ListDevicesCallback, (IotDevice.iotDeviceList.size > 0)?0:10*1000);
+        setTimeout(IotDevice.ListDevicesCallback, (IotDevice.iotDeviceList.size > 0) ? 0 : 10 * 1000);
     }
 
-    private static UnpackEbootBuffer (buffer :Uint8Array)
+    private static UnpackEbootBuffer (buffer: Uint8Array)
     {
         let data = new Buffer(buffer);
         let s = data.toString( 'ucs2');
 
-        let host = s.substr(host_offset, host_len);
+        let host = s.substr(hostOffset, hostLen);
         let i = host.indexOf('\0');
-        host = host.substr(0,i);
+        host = host.substr(0, i);
 
-        let ipv4 = s.substr(ipv4_offset, ipv4_len);
+        let ipv4 = s.substr(ipv4Offset, ipv4Len);
         i = ipv4.indexOf('\0');
-        ipv4 = ipv4.substr(0,i);
+        ipv4 = ipv4.substr(0, i);
 
-        let mac = s.substr(mac_offset, mac_len);
+        let mac = s.substr(macOffset, macLen);
         i = mac.indexOf('\0');
-        mac = mac.substr(0,i);
+        mac = mac.substr(0, i);
 
-        let id = s.substr(id_offset, id_len);
+        let id = s.substr(idOffset, idLen);
         i = id.indexOf('\0');
-        id = id.substr(0,i);
+        id = id.substr(0, i);
 
-        let model = s.substr(model_offset, model_len);
+        let model = s.substr(modeOffset, modelLen);
         i = model.indexOf('\0');
-        model = model.substr(0,i);
+        model = model.substr(0, i);
 
-        let version = s.substr(version_offset, version_len);
+        let version = s.substr(versionOffset, versionLen);
         i = version.indexOf('\0');
-        version = version.substr(0,i);
+        version = version.substr(0, i);
 
-        let arch = s.substr(arch_offset, arch_len);
+        let arch = s.substr(archOffset, archLen);
         i = arch.indexOf('\0');
-        arch = arch.substr(0,i);
+        arch = arch.substr(0, i);
 
         IotDevice.iotDeviceList.set(ipv4, new HostInfo(host, Number(new Date()), mac, id, model, version, arch));
     }
@@ -502,10 +512,11 @@ export class IotDevice
             IotDevice.listeningForEboot = true;
             IotDevice.iotDeviceList = new Map<string, HostInfo>();
 
+            /* tslint:disable:only-arrow-functions */
             const s = dgram.createSocket('udp4');
             s.on('listening', () => {
-                var address = s.address();
-                console.log('UDP Client listening on ' + address.address + ":" + address.port);
+                let address = s.address();
+                console.log('UDP Client listening on ' + address.address + ':' + address.port);
             });
 
             s.on('message', (message, remote) => {
@@ -517,19 +528,22 @@ export class IotDevice
                 s.setMulticastTTL(128);
                 s.addMembership('239.0.0.222');
             });
+            /* tslint:enable:only-arrow-functions */
         };
     }
 
-    public SetDeviceName() : Thenable<any>
+    public SetDeviceName(): Thenable<any>
     {
         return new Promise<any>( (resolve, reject) =>
         {
-            const url = 'http://' + this.host + ':8080/api/iot/device/name?newdevicename=' + new Buffer(this.devName).toString('base64');
-            console.log ('url=' + url)
+            const url = 'http://' + this.host + ':8080/api/iot/device/name?newdevicename=' +
+                new Buffer(this.devName).toString('base64');
+
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             iotOutputChannel.show();
@@ -566,16 +580,16 @@ export class IotDevice
         {
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             iotOutputChannel.show();
+            iotOutputChannel.appendLine(`Restarting device...`);
+            iotOutputChannel.appendLine( '' );
             const restarturl = 'http://' + this.host + ':8080/api/control/restart';
             request.post(restarturl, param, (err, resp, body) => {
                 if (!err && resp.statusCode === 200)
                 {
-                    iotOutputChannel.appendLine(`Restarting device...`)
-                    iotOutputChannel.appendLine( '' );
                     resolve(resp);
                 }
                 else
@@ -591,13 +605,13 @@ export class IotDevice
         });
     }
 
-    private UploadFileToPackage(packageFullName :any, filename: string) :Promise<string>
+    private UploadFileToPackage(packageFullName: any, filename: string): Promise<string>
     {
         return new Promise<string> ((resolve, reject) => {
             let relPath = path.relative(vscode.workspace.rootPath, filename);
             let relDir = path.dirname(relPath);
-            let remotePath = '\\LocalState'
-            console.log ('filename='+filename);
+            let remotePath = '\\LocalState';
+            console.log ('filename=' + filename);
             console.log ('relDir=' + relDir);
             if (relDir !== '.')
             {
@@ -605,15 +619,16 @@ export class IotDevice
             }
             console.log ('remotePath=' + remotePath);
 
-            let longRemotePath = 'c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp' + remotePath;
+            let packages = 'c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages';
+            let longRemotePath = packages + '\\NodeScriptHost_dnsz84vs3g3zp' + remotePath;
             console.log ('longRemotePath=' + longRemotePath);
 
             // this.RunCommand(`if not exist ${longRemotePath} md ${longRemotePath}`, true)
             this.RunCommand(`md ${longRemotePath}`, true)
-            .then((message) => {
-                if (message)
+            .then((incomingMessage) => {
+                if (incomingMessage)
                 {
-                    iotOutputChannel.appendLine(message);
+                    iotOutputChannel.appendLine(incomingMessage);
                 }
 
                 const url = 'http://' + this.host + ':8080/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=' + packageFullName + '&path=' + remotePath;
@@ -621,7 +636,7 @@ export class IotDevice
 
                 const param = {'auth': {
                     'user': this.user,
-                    'pass': this.password
+                    'pass': this.password,
                 }};
 
                 const req = request.post(url, param, (err, resp, body) => {
@@ -654,61 +669,61 @@ export class IotDevice
                 });
                 const form = req.form();
                 form.append('file', fs.createReadStream(filename));
-            })
-        })
+            });
+        });
     }
 
-    public FindFilesToUpload() :Promise<any>
+    public FindFilesToUpload(): Promise<any>
     {
-        return new Promise<any> ((resolve,reject) => {
+        return new Promise<any> ((resolve, reject) => {
             iotOutputChannel.appendLine('Locating files to upload in workspace.');
 
             const config = vscode.workspace.getConfiguration('iot');
-            let files :any = config.get('Deployment.Files', '');
+            let files: any = config.get('Deployment.Files', '');
             if (!files)
             {
                 // todo - get "main" from package.json?
-                reject("Please specify files to upload in settings.json - iot.Deployment.Files")
+                reject('Please specify files to upload in settings.json - iot.Deployment.Files');
             }
 
             let foundFiles = [];
-            Promise.all(files.map(item => {
-                return vscode.workspace.findFiles(`${item}`, "");
+            Promise.all(files.map((item) => {
+                return vscode.workspace.findFiles(`${item}`, '');
             }))
-            .then((result :vscode.Uri[][]) =>{
-                for (let i=0;i<result.length;i++)
+            .then((result: vscode.Uri[][]) => {
+                for (let i = 0; i < result.length; i++)
                 {
-                    for (let j=0;j<result[i].length;j++)
+                    for (let j = 0; j < result[i].length; j++)
                     {
                         foundFiles.push(result[i][j]);
                     }
                 }
 
-                let vscode_dir_cmd = 'dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState /s/b';
-                this.RunCommand(vscode_dir_cmd, false)
-                .then((output) =>{
-                    let installedFiles = output.split("\r\n");
-                    installedFiles.forEach((file, index, array) => {
-                        array[index] = file.replace("c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\", "");
+                let vscodeDirCmd = 'dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState /s/b';
+                this.RunCommand(vscodeDirCmd, false)
+                .then((output) => {
+                    let installedFiles = output.split('\r\n');
+                    installedFiles.forEach((file, installedFilesIndex, array) => {
+                        array[installedFilesIndex] = file.replace('c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\', '');
                     });
-                    let foundFilesFiltered = foundFiles.filter((uri,index,array) => {
+                    let foundFilesFiltered = foundFiles.filter((uri, foundFilesIndex, array) => {
                         let relpath = path.relative(vscode.workspace.rootPath, uri.fsPath);
-                        if (relpath.indexOf("node_modules") < 0){
+                        if (relpath.indexOf('node_modules') < 0){
                             return true;
                         }
-                        return !installedFiles.find((value, index, array) => {
-                            if(value===relpath) {
+                        return !installedFiles.find((value, indexInner, arrayInner) => {
+                            if (value === relpath) {
                                 return true;
                             } else {
 
                             return false; }
                         });
-                    })
+                    });
                     resolve(foundFilesFiltered);
-                })
+                });
             }, (err) => {
-                iotOutputChannel.appendLine("ERROR: err");
-            })
+                iotOutputChannel.appendLine('ERROR: err');
+            });
         });
     }
 
@@ -717,8 +732,8 @@ export class IotDevice
         iotOutputChannel.show();
         iotOutputChannel.appendLine('Upload Workspace Files:');
 
-        let architecture :string;
-        let iotAppxDetail :any;
+        let architecture: string;
+        let iotAppxDetail: any;
         let hostInstalled = false;
 
         return this.GetDeviceInfo().then((info) => {
@@ -739,16 +754,16 @@ export class IotDevice
         .then((info: any) => {
             return this.FindFilesToUpload();
         })
-        .then((uri :vscode.Uri[]) => {
-            let chain :Promise<string> = null;
-            uri.forEach(iotFile => {
+        .then((uri: vscode.Uri[]) => {
+            let chain: Promise<string> = null;
+            uri.forEach((iotFile) => {
                 if (!chain)
                 {
                     chain = this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
                 }
                 else
                 {
-                    chain = chain.then((message) =>{
+                    chain = chain.then((message) => {
                         iotOutputChannel.appendLine( message );
                         return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
                     },  (err) => {
@@ -756,7 +771,7 @@ export class IotDevice
                         iotOutputChannel.appendLine( '' );
                     });
                 }
-            })
+            });
             iotOutputChannel.appendLine( '\nUploading files:' );
             return chain;
         }).then((message) => {
@@ -765,7 +780,7 @@ export class IotDevice
         }, (err) => {
             iotOutputChannel.appendLine(err);
             iotOutputChannel.appendLine( '' );
-        })
+        });
     }
 
     public GetPackages()
@@ -773,11 +788,11 @@ export class IotDevice
         return new Promise<any>( (resolve, reject) =>
         {
             const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             request.get(url, param, (err, resp, body) => {
@@ -799,14 +814,14 @@ export class IotDevice
         iotOutputChannel.appendLine( 'Get Installed Packages:');
         iotOutputChannel.appendLine( 'Device=' + this.host );
         iotOutputChannel.appendLine( '');
-        info.InstalledPackages.forEach(element => {
+        info.InstalledPackages.forEach((element) => {
             iotOutputChannel.appendLine( 'Name: ' + element.Name );
             iotOutputChannel.appendLine( 'PackageFamilyName: ' + element.PackageFamilyName);
             iotOutputChannel.appendLine( 'PackageFullName: ' + element.PackageFullName);
             iotOutputChannel.appendLine( 'PackageOrigin: ' + element.PackageOrigin);
             iotOutputChannel.appendLine( 'PackageRelativeId: ' + element.PackageRelativeId);
             iotOutputChannel.appendLine( 'Publisher: ' + element.Publisher);
-            element.RegisteredUsers.forEach(user =>{
+            element.RegisteredUsers.forEach((user) => {
             iotOutputChannel.appendLine( 'UserDisplayName: ' + user.UserDisplayName);
             iotOutputChannel.appendLine( 'Name: ' + user.UserSID);
             });
@@ -820,11 +835,11 @@ export class IotDevice
         return new Promise<any>( (resolve, reject) =>
         {
             const url = 'http://' + this.host + ':8080/api/resourcemanager/processes';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             request.get(url, param, (err, resp, body) => {
@@ -839,50 +854,50 @@ export class IotDevice
         });
     }
 
-    private OpenSettingsJson() :Promise<vscode.TextEditor>
+    private OpenSettingsJson(): Promise<vscode.TextEditor>
     {
         return new Promise<vscode.TextEditor> ((resolve, reject) => {
-            vscode.workspace.findFiles(".vscode/settings.json","",1)
-            .then((results) =>{
-                results.forEach( r => {
+            vscode.workspace.findFiles('.vscode/settings.json', '', 1)
+            .then((results) => {
+                results.forEach( (r) => {
                     vscode.workspace.openTextDocument(r)
-                    .then((doc:any) =>{
-                        vscode.window.showTextDocument(doc).then((editor :vscode.TextEditor)=>{
+                    .then((doc: any) => {
+                        vscode.window.showTextDocument(doc).then((editor: vscode.TextEditor) => {
                             resolve(editor);
-                        })
-                    })
-                })
-            }, (err) =>{
+                        });
+                    });
+                });
+            }, (err) => {
                 reject(err);
             });
-        })
+        });
     }
 
-    public InitSettings() :Promise<string>
+    public InitSettings(): Promise<string>
     {
-        return new Promise((resolve,reject) => {
+        return new Promise((resolve, reject) => {
             let vscodeDir = vscode.workspace.rootPath + '/.vscode';
             let settingsJson = vscodeDir + '/settings.json';
 
             console.log(`settings.json=${vscodeDir}`);
             console.log(`settings.json=${settingsJson}`);
 
-            fs.exists(vscodeDir, (exists) => {
-                if (!exists)
+            fs.exists(vscodeDir, (vsCodeDirExists) => {
+                if (!vsCodeDirExists)
                 {
                     fs.mkdirSync(vscodeDir);
                 }
 
-                fs.exists(settingsJson, (exists) =>{
-                    if (exists)
+                fs.exists(settingsJson, (settingsJsonExists) => {
+                    if (settingsJsonExists)
                     {
                         this.OpenSettingsJson()
-                        .then((editor :vscode.TextEditor) => {
+                        .then((editor: vscode.TextEditor) => {
                             // can't parse any JSON with comments so just tell the user they already have a settings file
                             resolve('WARNING: settings.json found.\nTo generate the template settings.json delete your current settings.json before running this command.\n');
                         }, (err) => {
                             reject(err.message);
-                        })
+                        });
                     }
                     else
                     {
@@ -892,25 +907,25 @@ export class IotDevice
                         newSettings.iot.Device.UserName = this.user;
                         newSettings.iot.Device.Password = this.password;
                         newSettings.iot.Deployment.LaunchBrowserPageNo = `http://${this.host}:1337/`;
-                        
-                        fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (err) => {
-                            if (err)
+
+                        fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (writeFileErr) => {
+                            if (writeFileErr)
                             {
-                                reject(err.message);
+                                reject(writeFileErr.message);
                             }
                             else
                             {
                                 this.OpenSettingsJson()
-                                .then((editor :vscode.TextEditor) => {
+                                .then((editor: vscode.TextEditor) => {
                                     resolve ('settings.json created\n');
-                                }, (err) =>{
-                                    reject(err.message);
-                                })
+                                }, (openSettingsErr) => {
+                                    reject(openSettingsErr.message);
+                                });
                             }
                         });
                     }
                 });
-            })
+            });
         });
     }
 
@@ -918,13 +933,13 @@ export class IotDevice
     {
         iotOutputChannel.show();
         iotOutputChannel.appendLine(`rootpath=${vscode.workspace.rootPath}`);
-        vscode.workspace.findFiles("**/*","",null,null)
-        .then((result :any) =>{
-            result.forEach( r => {
+        vscode.workspace.findFiles('**/*', '', null, null)
+        .then((result: any) => {
+            result.forEach( (r) => {
                 iotOutputChannel.appendLine(r);
             });
             iotOutputChannel.appendLine('');
-        })
+        });
     }
 
     public PrintProcessInfo(info: any, appxOnly: boolean)
@@ -938,16 +953,16 @@ export class IotDevice
             iotOutputChannel.appendLine( 'Device=' + this.host );
             iotOutputChannel.appendLine( '');
         }
-        info.Processes.forEach(proc => {
+        info.Processes.forEach((proc) => {
             if (!appxOnly || proc.PackageFullName)
             {
-                if (proc.AppName) { iotOutputChannel.appendLine( 'AppName: ' + proc.AppName ) };
-                if (proc.PackageFullName) { iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName ) };
+                if (proc.AppName) { iotOutputChannel.appendLine( 'AppName: ' + proc.AppName ); };
+                if (proc.PackageFullName) { iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName ); };
                 if (!appxOnly)
                 {
-                    if (proc.IsRunning) { iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning ) };
-                    if (proc.Publisher) { iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher ) };
-                    if (proc.Version) { iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build) };
+                    if (proc.IsRunning) { iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning ); };
+                    if (proc.Publisher) { iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher ); };
+                    if (proc.Version) { iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build); };
                     iotOutputChannel.appendLine( 'CPUUsage: ' + proc.CPUUsage );
                     iotOutputChannel.appendLine( 'ImageName: ' + proc.ImageName );
                     iotOutputChannel.appendLine( 'PageFileUsage: ' + proc.PageFileUsage );
@@ -963,7 +978,7 @@ export class IotDevice
         });
     }
 
-    private InstallPackage(appxInfo :any, architecture :string, hostInstalled :boolean) :Promise<any>
+    private InstallPackage(appxInfo: any, architecture: string, hostInstalled: boolean): Promise<any>
     {
         return new Promise<any> ((resolve, reject) => {
             iotOutputChannel.show();
@@ -984,18 +999,18 @@ export class IotDevice
             const certFile = this.FileFromPath(appxFolder + appxInfo.certificate);
 
             const url = 'http://' + this.host + ':8080/api/appx/packagemanager/package?package=' + appxFile;
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             iotOutputChannel.appendLine('Installing Appx Package...');
-            console.log('appxPath='+appxPath);
-            console.log('appxFile='+appxFile);
-            console.log('certPath='+certPath);
-            console.log('certFile='+certFile);
+            console.log('appxPath=' + appxPath);
+            console.log('appxFile=' + appxFile);
+            console.log('certPath=' + certPath);
+            console.log('certFile=' + certFile);
 
             const req = request.post(url, param, (err, resp, body) => {
                 if (err){
@@ -1029,13 +1044,13 @@ export class IotDevice
 
             form.append(appxFile, fs.createReadStream(appxPath));
             form.append(certFile, fs.createReadStream(certPath));
-            appxInfo.dependencies.forEach(dependency => {
+            appxInfo.dependencies.forEach((dependency) => {
                 const depFile = this.FileFromPath(appxFolder + dependency);
                 const depPath = appxFolder + dependency;
-                console.log('depFile='+depFile);
-                console.log('depPath='+depPath);
+                console.log('depFile=' + depFile);
+                console.log('depPath=' + depPath);
                 form.append(depFile, fs.createReadStream(depPath));
-            })
+            });
         });
     }
 
@@ -1046,11 +1061,11 @@ export class IotDevice
             ':8080/api/iot/processmanagement/runcommandwithoutput?command=' + new Buffer(command).toString('base64') +
             '&runasdefaultaccount=' + new Buffer('false').toString('base64') +
             '&timeout='  + new Buffer('300000').toString('base64');
-        console.log ('url=' + url)
+        console.log ('url=' + url);
 
         const param = {'auth': {
             'user': this.user,
-            'pass': this.password
+            'pass': this.password,
         }};
 
         request.post(url, param, (err, resp, body) => {
@@ -1080,11 +1095,11 @@ export class IotDevice
 
     public RunCommandFromPrompt()
     {
-        return new Promise<any> ((resolve,reject) => {
-            vscode.window.showInputBox({"placeHolder":"command to run", "prompt":"Enter Command to Run"})
-            .then((command) =>{
+        return new Promise<any> ((resolve, reject) => {
+            vscode.window.showInputBox({'placeHolder': 'command to run', 'prompt': 'Enter Command to Run'})
+            .then((command) => {
                 iotOutputChannel.show();
-                iotOutputChannel.appendLine(`Run ${command}`)
+                iotOutputChannel.appendLine(`Run ${command}`);
                 this.RunCommandInternal(command, resolve, reject, false);
             });
         });
@@ -1092,38 +1107,38 @@ export class IotDevice
 
     public RunCommandFromSettings()
     {
-        return new Promise<any> ((resolve,reject) => {
+        return new Promise<any> ((resolve, reject) => {
             const config = vscode.workspace.getConfiguration('iot');
-            let commands :any = config.get('RunCommands', '');
+            let commands: any = config.get('RunCommands', '');
             if (!commands)
             {
                 commands =
                 [
-                    "tlist",
-                    "deployappx getpackages"
+                    'tlist',
+                    'deployappx getpackages',
                 ];
             }
             vscode.window.showQuickPick(commands)
-            .then((command) =>{
+            .then((command) => {
                 iotOutputChannel.show();
-                iotOutputChannel.appendLine(`Run ${command}`)
+                iotOutputChannel.appendLine(`Run ${command}`);
                 this.RunCommandInternal(command, resolve, reject, false);
             });
         });
     }
 
-    public RunCommand(command :string, quiet :boolean) :Promise<string>
+    public RunCommand(command: string, quiet: boolean): Promise<string>
     {
         return new Promise<any> ((resolve, reject) => {
             this.RunCommandInternal(command, resolve, reject, quiet);
         });
     }
 
-    public static IsInstalled(info:any, PackageRelativeId: string) : boolean
+    public static IsInstalled(info: any, packageRelativeId: string): boolean
     {
         let installed = false;
-        info.InstalledPackages.some(appx => {
-            if (PackageRelativeId === appx.PackageRelativeId)
+        info.InstalledPackages.some((installedPackage) => {
+            if (packageRelativeId === installedPackage.PackageRelativeId)
             {
                 installed = true;
                 return installed;
@@ -1132,11 +1147,11 @@ export class IotDevice
         return installed;
     }
 
-    public static IsRunning(info :any, PackageFullName :string) :boolean
+    public static IsRunning(info: any, packageFullName: string): boolean
     {
         let running = false;
-        info.Processes.some(proc => {
-            if (PackageFullName === proc.PackageFullName)
+        info.Processes.some((proc) => {
+            if (packageFullName === proc.PackageFullName)
             {
                 running = true;
                 return running;
@@ -1148,7 +1163,7 @@ export class IotDevice
     public RunRemoteScript()
     {
         let architecture: string;
-        let iotAppxDetail :any;
+        let iotAppxDetail: any;
         let hostInstalled = false;
         let hostRunning = false;
 
@@ -1173,12 +1188,12 @@ export class IotDevice
         .then((info: any) => {
             return this.GetProcessInfo();
         })
-        .then((info :any) => {
+        .then((info: any) => {
             hostRunning = IotDevice.IsRunning(info, iotAppxDetail.packageFullName);
-            iotOutputChannel.appendLine(hostRunning?'Stopping NodeScriptHost...':'NodeScriptHost is not running.');
-            return this.StopAppx(iotAppxDetail.packageFullName, hostRunning)
+            iotOutputChannel.appendLine(hostRunning ? 'Stopping NodeScriptHost...' : 'NodeScriptHost is not running.');
+            return this.StopAppx(iotAppxDetail.packageFullName, hostRunning);
         })
-        .then((resp :any) => {
+        .then((resp: any) => {
             return this.WaitForAppxStop(iotAppxDetail.packageFullName, hostRunning);
         })
         .then((message: string) => {
@@ -1188,15 +1203,15 @@ export class IotDevice
             }
             return this.FindFilesToUpload();
         })
-        .then((uri :vscode.Uri[]) => {
-            return Promise.all(uri.map(iotFile => {
+        .then((uri: vscode.Uri[]) => {
+            return Promise.all(uri.map((iotFile) => {
                 iotOutputChannel.appendLine(`Uploading file ${iotFile.fsPath} ...`);
                 return this.UploadFileToPackage(iotAppxDetail.packageFullName, iotFile.fsPath);
             }));
         }).then((messages) => {
-            messages.map(message =>{
-                iotOutputChannel.appendLine(`Successfully uploaded ${message}`)
-            })
+            messages.map((message) => {
+                iotOutputChannel.appendLine(`Successfully uploaded ${message}`);
+            });
             iotOutputChannel.appendLine('Starting NodeScriptHost...');
             return this.ActivateApplication(iotAppxDetail.packageFullName);
         })
@@ -1205,12 +1220,12 @@ export class IotDevice
             let launchBrowserPage = config.get('Deployment.LaunchBrowserPage', '');
             if (launchBrowserPage)
             {
-                delay(3000).then(()=>{
+                delay(3000).then(() => {
                     iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`);
 
                     // launch browser (probably only works on windows)
                     spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
-                })
+                });
             }
             else
             {
@@ -1219,15 +1234,15 @@ export class IotDevice
         });
     }
 
-    public ActivateApplication(packageFullName: string) : Thenable<any>
+    public ActivateApplication(packageFullName: string): Thenable<any>
     {
         return new Promise ((resolve, reject) => {
             const url = 'http://' + this.host + ':8080/api/iot/appx/app?appid=' + new Buffer(packageFullName).toString('base64');
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             request.post(url, param, (err, resp, body) => {
@@ -1242,7 +1257,7 @@ export class IotDevice
 
     public StartNodeScriptHost()
     {
-        let iotAppxDetail :any;
+        let iotAppxDetail: any;
         let architecture: string;
 
         iotOutputChannel.show();
@@ -1266,9 +1281,9 @@ export class IotDevice
         });
     }
 
-    public StopAppx(packageFullName :string, hostRunning :boolean) : Thenable<any>
+    public StopAppx(packageFullName: string, hostRunning: boolean): Thenable<any>
     {
-        return new Promise<any> ((resolve, reject) =>{
+        return new Promise<any> ((resolve, reject) => {
             if (!hostRunning)
             {
                 resolve(null);
@@ -1276,11 +1291,11 @@ export class IotDevice
             }
 
             const url = 'http://' + this.host + ':8080/api/taskmanager/app?package=' + new Buffer(packageFullName).toString('base64');
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
             request.delete(url, param, (err, resp, body) => {
@@ -1293,7 +1308,7 @@ export class IotDevice
         });
     }
 
-    public WaitForAppxInstall(PackageRelativeId: string, hostInstalled :boolean) : Promise<string>
+    public WaitForAppxInstall(packageRelativeId: string, hostInstalled: boolean): Promise<string>
     {
         return new Promise<any>((resolve, reject) => {
             if (hostInstalled)
@@ -1303,14 +1318,16 @@ export class IotDevice
             }
 
             const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
+            /* tslint:disable:only-arrow-functions */
             (function WaitForAppxInstallCallback(){
+                /* tslint:enable:only-arrow-functions */
                 request.get(url, param, (err, resp, body) => {
                     if (err){
                         console.log(err.message);
@@ -1318,7 +1335,7 @@ export class IotDevice
                         reject(err);
                     } else {
                         const info = JSON.parse(body);
-                        if (IotDevice.IsInstalled(info, PackageRelativeId))
+                        if (IotDevice.IsInstalled(info, packageRelativeId))
                         {
                             resolve(info);
                         }
@@ -1332,7 +1349,7 @@ export class IotDevice
         });
     }
 
-    public WaitForAppxStop(packageFullName :string, hostRunning :boolean) : Promise<string>
+    public WaitForAppxStop(packageFullName: string, hostRunning: boolean): Promise<string>
     {
         return new Promise<any>((resolve, reject) => {
             if (!hostRunning)
@@ -1342,14 +1359,16 @@ export class IotDevice
             }
 
             const url = 'http://' + this.host + ':8080/api/resourcemanager/processes';
-            console.log ('url=' + url)
+            console.log ('url=' + url);
 
             const param = {'auth': {
                 'user': this.user,
-                'pass': this.password
+                'pass': this.password,
             }};
 
+            /* tslint:disable:only-arrow-functions */
             (function WaitForAppxStopCallback(){
+                /* tslint:enable:only-arrow-functions */
                 request.get(url, param, (err, resp, body) => {
                     if (err){
                         console.log(err.message);
@@ -1396,11 +1415,11 @@ export class IotDevice
     {
         let ext = vscode.extensions.getExtension('ms-iot.windowsiot');
         iotOutputChannel.show();
-        var commands = ext.packageJSON.contributes.commands;
-        iotOutputChannel.appendLine('IoT Extension Commands:')
-        commands.forEach(c => {
-            iotOutputChannel.appendLine(c.title)
-        })
+        let commands = ext.packageJSON.contributes.commands;
+        iotOutputChannel.appendLine('IoT Extension Commands:');
+        commands.forEach((c) => {
+            iotOutputChannel.appendLine(c.title);
+        });
         iotOutputChannel.appendLine('');
     }
 }
