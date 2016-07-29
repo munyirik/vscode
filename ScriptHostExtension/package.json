@@ -5,7 +5,7 @@
     "icon": "images/iotCoreLogo.svg",
     "version": "0.0.14",
     "publisher": "ms-iot",
-    "license": "MS-PL",
+    "license": "MIT",
     "preview": true,
     "engines": {
         "vscode": "^0.10.10"
