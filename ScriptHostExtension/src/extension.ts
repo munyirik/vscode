@@ -83,7 +83,15 @@ export function activate(context: vscode.ExtensionContext) {
     const disposableUploadFile = vscode.commands.registerCommand('extension.uploadWorkspaceFiles', () => {
         const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
-            iotDevice.UploadWorkspaceFiles();
+            iotDevice.PrintMessage('Upload Workspace Files:');
+            return iotDevice.UploadWorkspaceFiles( (m) => {
+                iotDevice.PrintMessage(m);
+            });
+        })
+        .then((message: string) => {
+            iotDevice.PrintMessage(message);
+        }, (err) => {
+            iotDevice.PrintMessage(err);
         });
     });
     context.subscriptions.push(disposableUploadFile);

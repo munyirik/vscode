@@ -1,10 +1,10 @@
 {
-	"extends": "tslint:latest",
+	"extends": ["tslint:latest"],
 	"rules": {
 		"align": [true, "parameters"],
 		"arrow-parens": true, 
 		"class-name": true,
-		"comment-format": [true, "check-space", "check-lowercase"],
+		"comment-format": [false],
 		"curly": true,
 		"indent": [true, "spaces"],
 		"max-line-length": [true, 200],
@@ -20,8 +20,10 @@
 		"no-use-before-declare": true,
 		"no-var-keyword": true,
 		"no-var-requires": false,
+		"object-literal-sort-keys": [false],
 		"one-line": [false],
 		"only-arrow-functions": true,
+		"ordered-imports": [false],
 		"quotemark": [true, "single", "avoid-escape"],
 		"semicolon": [true, "always"],
 		"triple-equals": true,
