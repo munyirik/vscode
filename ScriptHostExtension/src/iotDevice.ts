@@ -12,6 +12,7 @@ const sftpHelper = require('./sftpHelper');
 const spawn = require('child_process').spawn;
 const urlx = require('url');
 
+const MAX_PATH = 260;
 const iotOutputChannel = vscode.window.createOutputChannel('IoT');
 
 const appx = {
@@ -83,6 +84,7 @@ const defaultSettings = {
             'deployappx getpackages|findstr -i nodescripthost',
             'deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp',
             'deployappx uninstall NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp',
+            'deployappx uninstall NodeScriptHost_1.0.0.0_x64__dnsz84vs3g3zp', 
         ],
     },
 };
@@ -172,6 +174,10 @@ export class IotDevice {
         if (architecture === 'woa')
         {
             architecture = 'arm';
+        }
+        if (architecture === 'amd64')
+        {
+            architecture = 'x64';
         }
         return architecture;
     }
@@ -298,7 +304,7 @@ export class IotDevice {
             {
                 appxDetail = appx.x86;
             }
-            else if (architecture === 'amd64')
+            else if (architecture === 'x64')
             {
                 appxDetail = appx.x64;
             }
@@ -657,15 +663,19 @@ export class IotDevice {
         return new Promise<string> ((resolve, reject) => {
             let options = {
                 // debug: (msg) => { console.log(msg); },
-                host: '10.137.185.162',
-                password: 'p@ssw0rd',
+                host: this.host,
+                username: this.user,
+                password: this.password,
                 path: vscode.workspace.rootPath,
                 remoteDir: '/C/data/Users/DefaultAccount/AppData/Local/Packages/NodeScriptHost_dnsz84vs3g3zp/LocalState',
-                username: 'administrator',
             };
 
             let fileList = [];
             uriList.forEach((iotFile) => {
+                if (iotFile.fsPath.length > MAX_PATH)
+                {
+                    reject(`ERROR: Filename too long ${iotFile.fsPath} (${iotFile.fsPath.length})`);
+                }
                 fileList.push(iotFile.fsPath);
             });
 
@@ -680,6 +690,10 @@ export class IotDevice {
             })
             .on('uploading', (pgs) => {
                 callback(`[${pgs.percent}%] Uploading ${pgs.file}`);
+                if (IotDevice.fileMap.has(pgs.file)){
+                    let stats = fs.statSync(pgs.file);
+                    IotDevice.fileMap.set(pgs.file, stats.ctime);
+                }
             })
             .on('completed', () => {
                 resolve('Upload Completed\n');

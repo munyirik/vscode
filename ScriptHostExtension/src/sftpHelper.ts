@@ -80,14 +80,13 @@ SftpHelper.prototype.addFilesFromList = function(uploads, fileList, fileMap){
             }
             if (!mapHasFile || (timediff !== 0))
             {
-                fileMap.set(currentFile, stats.ctime);
                 uploads.push(currentFile);
             }
         }
     });
 };
 
-SftpHelper.prototype.uploadFiles = function(files, opt){
+SftpHelper.prototype.uploadFiles = function(files, fileMap, opt){
     let fns = [];
     let client = new scp2Client(opt);
     let totalFiles = files.length;
@@ -128,7 +127,7 @@ SftpHelper.prototype.uploadWorkspaceFiles = function(fileList, fileMap){
     let self = this;
     let opt = self.defaults;
     this.addFilesFromList(self.uploads, fileList, fileMap);
-    this.uploadFiles(self.uploads, opt);
+    this.uploadFiles(self.uploads, fileMap, opt);
     return this;
 };
 
