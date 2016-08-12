@@ -18,44 +18,44 @@ const iotOutputChannel = vscode.window.createOutputChannel('IoT');
 const appx = {
     'arm' : {
         'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.0.0_ARM.appx',
-        'certificate': 'NodeScriptHost_1.0.0.0_ARM.cer',
+        'packageFullName': 'NodeScriptHost_1.0.1.0_arm__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.1.0_ARM.appx',
+        'certificate': 'NodeScriptHost_1.0.1.0_ARM.cer',
         'dependencies': [
             'Microsoft.VCLibs.ARM.14.00.appx',
         ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/arm-appx/NodeScriptHost_1.0.0.0_ARM.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/arm-appx/NodeScriptHost_1.0.0.0_ARM.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/arm-appx/Microsoft.VCLibs.ARM.14.00.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/arm/NodeScriptHost_1.0.1.0_ARM.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/arm/NodeScriptHost_1.0.1.0_ARM.cer',
+            'https://iottools.blob.core.windows.net/scripthostextension/arm/Microsoft.VCLibs.ARM.14.00.appx',
         ],
     },
     'x86' : {
         'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.0.0_x86.appx',
-        'certificate': 'NodeScriptHost_1.0.0.0_x86.cer',
+        'packageFullName': 'NodeScriptHost_1.0.1.0_x86__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.1.0_x86.appx',
+        'certificate': 'NodeScriptHost_1.0.1.0_x86.cer',
         'dependencies': [
             'Microsoft.VCLibs.x86.14.00.appx',
         ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/x86-appx/NodeScriptHost_1.0.0.0_x86.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/x86-appx/NodeScriptHost_1.0.0.0_x86.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/x86-appx/Microsoft.VCLibs.x86.14.00.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/x86/NodeScriptHost_1.0.1.0_x86.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/x86/NodeScriptHost_1.0.1.0_x86.cer',
+            'https://iottools.blob.core.windows.net/scripthostextension/x86/Microsoft.VCLibs.x86.14.00.appx',
         ],
     },
     'x64' : {
         'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.0.0_x64__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.0.0_x64.appx',
-        'certificate': 'NodeScriptHost_1.0.0.0_x64.cer',
+        'packageFullName': 'NodeScriptHost_1.0.1.0_x64__dnsz84vs3g3zp',
+        'package': 'NodeScriptHost_1.0.1.0_x64.appx',
+        'certificate': 'NodeScriptHost_1.0.1.0_x64.cer',
         'dependencies': [
             'Microsoft.VCLibs.x64.14.00.appx',
         ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/x64-appx/NodeScriptHost_1.0.0.0_x64.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/x64-appx/NodeScriptHost_1.0.0.0_x64.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/x64-appx/Microsoft.VCLibs.x64.14.00.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/x64/NodeScriptHost_1.0.1.0_x64.appx',
+            'https://iottools.blob.core.windows.net/scripthostextension/x64/NodeScriptHost_1.0.1.0_x64.cer',
+            'https://iottools.blob.core.windows.net/scripthostextension/x64/Microsoft.VCLibs.x64.14.00.appx',
         ],
     },
 };
@@ -82,9 +82,9 @@ const defaultSettings = {
             'iotstartup add headless NodeScriptHost',
             'iotstartup remove headless NodeScriptHost',
             'deployappx getpackages|findstr -i nodescripthost',
-            'deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp',
-            'deployappx uninstall NodeScriptHost_1.0.0.0_arm__dnsz84vs3g3zp',
-            'deployappx uninstall NodeScriptHost_1.0.0.0_x64__dnsz84vs3g3zp', 
+            'deployappx uninstall NodeScriptHost_1.0.1.0_x86__dnsz84vs3g3zp',
+            'deployappx uninstall NodeScriptHost_1.0.1.0_arm__dnsz84vs3g3zp',
+            'deployappx uninstall NodeScriptHost_1.0.1.0_x64__dnsz84vs3g3zp', 
         ],
     },
 };
@@ -690,10 +690,8 @@ export class IotDevice {
             })
             .on('uploading', (pgs) => {
                 callback(`[${pgs.percent}%] Uploading ${pgs.file}`);
-                if (IotDevice.fileMap.has(pgs.file)){
-                    let stats = fs.statSync(pgs.file);
-                    IotDevice.fileMap.set(pgs.file, stats.ctime);
-                }
+                let stats = fs.statSync(pgs.file);
+                IotDevice.fileMap.set(pgs.file, stats.ctime);
             })
             .on('completed', () => {
                 resolve('Upload Completed\n');

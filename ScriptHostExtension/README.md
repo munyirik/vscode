@@ -2,7 +2,7 @@
 ## About the Windows IoT Core Extension for VS Code
 This extension provides an easy way to experiment with UWP Node.js apps running on Windows IoT Core.
 
-All of the commands contrbituted by this extension are prefixed with "iot:" 
+All of the commands contributed by this extension are prefixed with "iot:" 
 
 To see a list of commands that are contributed by this extension press F1 and then type iot.  You should see something like this
 
@@ -25,6 +25,7 @@ To see a list of commands that are contributed by this extension press F1 and th
         iot: Upload Workspace Files   // Upload the files for this workspace but don't run the project.
 
 ### Changes
+* 8/10/2016 Changed file copying to use SFTP
 * 7/27/2016 Added "iot: Initialize settings.js" command
 * 7/25/2016 Added "iot: List Devices" command
 
