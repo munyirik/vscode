@@ -5,9 +5,9 @@
   xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10"
   IgnorableNamespaces="uap mp iot">
 
-  <Identity Name="NodeScriptHost" Publisher="CN=paulmon" Version="1.0.0.0" />
+  <Identity Name="NodeScriptHost" Publisher="CN=paulmon" Version="1.0.1.0" />
 
-  <mp:PhoneIdentity PhoneProductId="f54d6c15-3e0d-43dd-b815-c32c84dee680" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="0ec06b6b-e2a2-49c9-abd0-02d4f6334470" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>NodeScriptHost</DisplayName>
