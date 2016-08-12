@@ -4,7 +4,11 @@ typings/**
 out/test/**
 test/**
 src/**
+arm/**
+x86/**
+x64/**
 **/*.map
+*.vsix
 .gitignore
 tsconfig.json
 tslint.json
