@@ -29,9 +29,6 @@ To see a list of commands that are contributed by this extension press F1 and th
 * 7/27/2016 Added "iot: Initialize settings.js" command
 * 7/25/2016 Added "iot: List Devices" command
 
-### Known issues
-You can only deploy one app at a time with this extension.
-
 ### Found a Bug?
 Please file any issues at [https://github.com/ms-iot/vscode](https://github.com/ms-iot/vscode)
 
