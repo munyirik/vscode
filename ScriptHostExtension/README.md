@@ -53,12 +53,12 @@ Please file any issues at [https://github.com/ms-iot/vscode](https://github.com/
         OsVersion=14393.0.armfre.rs1_release.160715-1616
         Platform=Raspberry Pi 3
 
-1. Wire your circuit as described [here](https://developer.microsoft.com/en-us/windows/iot/win10/samples/blinky)
+1. Wire your circuit as described [here](https://developer.microsoft.com/en-us/windows/iot/samples/helloblinky)
 1. Add a new file to the workspace by clicking the icon found here. Name it index.js or whatever filename you provided in npm.init.
 
     ![NewFile](images/NewFile.png)
 
-1. Copy and paste code from [here](https://github.com/ms-iot/samples/blob/develop/BlinkyHeadless/node.js/NodeJsBlinky/server.js)
+1. Copy and paste code from [here](https://github.com/ms-iot/samples/blob/develop/HelloBlinkyBackground/node.js/NodeJsBlinky/server.js)
 
     ```   
     // Copyright (c) Microsoft. All rights reserved.
@@ -103,7 +103,7 @@ Please file any issues at [https://github.com/ms-iot/vscode](https://github.com/
 
     ![NewFile](images/NewFile.png)
 
-1. Copy and paste code from [here](https://github.com/ms-iot/samples/blob/develop/BlinkyHeadless/node.js/NodeJsBlinky/server.js)
+1. Copy and paste code from [here](https://developer.microsoft.com/en-us/windows/iot/samples/helloworldnode)
     ```   
         var http = require('http');
         
