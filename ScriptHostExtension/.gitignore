@@ -5,3 +5,4 @@ arm
 x86
 x64
 *.vsix
+.vscode
