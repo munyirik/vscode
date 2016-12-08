@@ -2,6 +2,7 @@
 
 const fileHelper = require('./fileHelper').FileHelper;
 const fs = require('fs');
+const fse = require('fs-extra');
 const http = require('http');
 const path = require('path');
 const url = require('url');
@@ -21,7 +22,7 @@ export class HttpHelper
 
             if (!fileHelper.DirectoryExists(targetDir))
             {
-                fs.mkdirSync(targetDir);
+                fse.mkdirsSync(targetDir);
             }
 
             const options = {

@@ -1,6 +1,8 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
+var fse = require('fs-extra')
 
 export class FileHelper
 {
@@ -44,5 +46,13 @@ export class FileHelper
     {
         const filename = filePath.replace(/^.*[\\\/]/, '');
         return filename;
+    }
+
+    public static GetFilesInDirectory(dir: string): any
+    {
+        if(FileHelper.DirectoryExists(dir))
+        {
+            return fse.walkSync(dir);
+        }
     }
 }

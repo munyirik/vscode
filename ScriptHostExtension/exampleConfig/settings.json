@@ -8,22 +8,21 @@
             "Password": "p@ssw0rd",
             "ListFilter": "username_or_ipaddr_substr"
         },
-        "Deployment" : {
+        "Deployment": {
+        "Workspace": {
             "Files": [
-                "index.js",
-                "package.json"
+            "**"
             ],
-            "LaunchBrowserPageNo": "http://10.137.187.40:1337/"
+            "Destination": "c:\\Projects\\MyApp"
+        },
+        "Nodejs": {
+            "Source": null,
+            "Destination": "C:\\nodejschakracore"
+        }
         },
         "RunCommands": [
-            "iotstartup list",
-            "iotstartup add headless NodeScriptHost",
-            "iotstartup remove headless NodeScriptHost",
-            "deployappx getpackages|findstr -i nodescripthost",
-            "deployappx uninstall NodeScriptHost_1.0.0.0_x86__dnsz84vs3g3zp",
-            "dir c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState",
-            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\server.js",
-            "type c:\\data\\Users\\DefaultAccount\\AppData\\Local\\Packages\\NodeScriptHost_dnsz84vs3g3zp\\LocalState\\package.json"
+            "C:\\nodejschakracore\\7.0.0-pre10\\node.exe c:\\Projects\\MyApp\\nodeRemoteDebug.js -breakatentrypoint c:\\Projects\\MyApp\\server.js",
+            "C:\\nodejschakracore\\7.0.0-pre10\\node.exe c:\\Projects\\MyApp\\server.js"
         ]
     }
 }

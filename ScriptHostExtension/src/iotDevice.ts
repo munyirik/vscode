@@ -7,85 +7,61 @@ const delay = require('delay');
 const dgram = require('dgram');
 const fileHelper = require('./fileHelper').FileHelper;
 const httpHelper = require('./httpHelper').HttpHelper;
+const nodeDebugHelper = require('./nodeDebugHelper').NodeDebugHelper;
 const request = require('request');
 const sftpHelper = require('./sftpHelper');
 const spawn = require('child_process').spawn;
 const urlx = require('url');
+const path = require('path');
+const stripJsonComments = require('strip-json-comments');
 
 const MAX_PATH = 260;
 const iotOutputChannel = vscode.window.createOutputChannel('IoT');
+const nodeVersion = "7.0.0-pre10"
 
-const appx = {
+const nodeSource = {
     'arm' : {
-        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.1.0_arm__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.1.0_ARM.appx',
-        'certificate': 'NodeScriptHost_1.0.1.0_ARM.cer',
-        'dependencies': [
-            'Microsoft.VCLibs.ARM.14.00.appx',
-        ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/arm/NodeScriptHost_1.0.1.0_ARM.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/arm/NodeScriptHost_1.0.1.0_ARM.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/arm/Microsoft.VCLibs.ARM.14.00.appx',
-        ],
+            `https://iottools.blob.core.windows.net/scripthostextension/arm/${nodeVersion}/chakracore.dll`,
+            `https://iottools.blob.core.windows.net/scripthostextension/arm/${nodeVersion}/node.exe`
+        ]
     },
     'x86' : {
-        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.1.0_x86__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.1.0_x86.appx',
-        'certificate': 'NodeScriptHost_1.0.1.0_x86.cer',
-        'dependencies': [
-            'Microsoft.VCLibs.x86.14.00.appx',
-        ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/x86/NodeScriptHost_1.0.1.0_x86.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/x86/NodeScriptHost_1.0.1.0_x86.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/x86/Microsoft.VCLibs.x86.14.00.appx',
-        ],
+            `https://iottools.blob.core.windows.net/scripthostextension/x86/${nodeVersion}/chakracore.dll`,
+            `https://iottools.blob.core.windows.net/scripthostextension/x86/${nodeVersion}/node.exe`
+        ]
     },
     'x64' : {
-        'id': 'NodeScriptHost_dnsz84vs3g3zp!App',
-        'packageFullName': 'NodeScriptHost_1.0.1.0_x64__dnsz84vs3g3zp',
-        'package': 'NodeScriptHost_1.0.1.0_x64.appx',
-        'certificate': 'NodeScriptHost_1.0.1.0_x64.cer',
-        'dependencies': [
-            'Microsoft.VCLibs.x64.14.00.appx',
-        ],
         'blobs': [
-            'https://iottools.blob.core.windows.net/scripthostextension/x64/NodeScriptHost_1.0.1.0_x64.appx',
-            'https://iottools.blob.core.windows.net/scripthostextension/x64/NodeScriptHost_1.0.1.0_x64.cer',
-            'https://iottools.blob.core.windows.net/scripthostextension/x64/Microsoft.VCLibs.x64.14.00.appx',
-        ],
-    },
+            `https://iottools.blob.core.windows.net/scripthostextension/x64/${nodeVersion}/chakracore.dll`,
+            `https://iottools.blob.core.windows.net/scripthostextension/x64/${nodeVersion}/node.exe`
+        ]
+    }
 };
 
 const defaultSettings = {
     'iot' : {
         'Device' : {
-            'IpAddress': '10.127.128.129',
-            'DeviceName': 'mydevice',
-            'UserName': 'Administrator',
-            'Password': 'p@ssw0rd',
+            'IpAddress': null,
+            'DeviceName': null,
+            'UserName': null,
+            'Password': null,
             'ListFilter': null,
         },
-        'Deployment' : {
-            'Files': [
-                'index.js',
-                'package.json',
-                'node_modules/**',
-            ],
-            'LaunchBrowserPageNo': 'http://10.137.187.40:1337/',
+        'Deployment': {
+            'Workspace': {
+                'Files': [
+                '**',
+                ],
+                'Destination': null,
+            },
+            'Nodejs': {
+                'Source': null,
+                'Destination': 'C:\\nodejschakracore',
+            }
         },
-        'RunCommands': [
-            'iotstartup list',
-            'iotstartup add headless NodeScriptHost',
-            'iotstartup remove headless NodeScriptHost',
-            'deployappx getpackages|findstr -i nodescripthost',
-            'deployappx uninstall NodeScriptHost_1.0.1.0_x86__dnsz84vs3g3zp',
-            'deployappx uninstall NodeScriptHost_1.0.1.0_arm__dnsz84vs3g3zp',
-            'deployappx uninstall NodeScriptHost_1.0.1.0_x64__dnsz84vs3g3zp', 
-        ],
+        'RunCommands': null,
     },
 };
 
@@ -108,7 +84,7 @@ const archOffset    = versionOffset + versionLen;
 class HostInfo {
 
     public host: string;
-    public seen: Number;
+    public seen: number;
     public mac: string;
     public id: string;
     public model: string;
@@ -117,7 +93,7 @@ class HostInfo {
 
     constructor(
         hostName: string,
-        lastSeen: Number,
+        lastSeen: number,
         mac: string,
         id: string,
         model: string,
@@ -295,35 +271,28 @@ export class IotDevice {
         });
     }
 
-    public GetAppxInfo(architecture: string): Thenable<any>
+    public GetNodeSourceInfo(architecture: string): Thenable<any>
     {
         return new Promise<any>( (resolve, reject) =>
         {
-            let appxDetail: any;
+            let nodeSourceInfo: any;
             if (architecture === 'x86')
             {
-                appxDetail = appx.x86;
+                nodeSourceInfo = nodeSource.x86;
             }
             else if (architecture === 'x64')
             {
-                appxDetail = appx.x64;
+                nodeSourceInfo = nodeSource.x64;
             }
             else if (architecture === 'arm')
             {
-                appxDetail = appx.arm;
+                nodeSourceInfo = nodeSource.arm;
             }
 
-            if (appxDetail !== null)
+            if (nodeSourceInfo !== null)
             {
                 console.log( 'architecture=' + architecture );
-                console.log( 'package=' + appxDetail.package );
-                console.log( 'certificate=' + appxDetail.certificate );
-                console.log( 'dependencies=' );
-                appxDetail.dependencies.forEach((dep) => {
-                    console.log( '  ' + dep );
-                });
-                console.log( '' );
-                resolve(appxDetail);
+                resolve(nodeSourceInfo);
             }
             else
             {
@@ -631,14 +600,14 @@ export class IotDevice {
             iotOutputChannel.appendLine('Locating files to upload in workspace.');
 
             const config = vscode.workspace.getConfiguration('iot');
-            let files: any = config.get('Deployment.Files', '');
+            let files: any = config.get('Deployment.Workspace.Files', '');
             if (!files)
             {
                 // todo - get "main" from package.json?
                 reject('Please specify files to upload in settings.json - iot.Deployment.Files');
             }
 
-            let foundFiles = [];
+            let foundFiles: any = [];
             Promise.all(files.map((item) => {
                 return vscode.workspace.findFiles(`${item}`, '');
             }))
@@ -658,7 +627,33 @@ export class IotDevice {
         });
     }
 
-    public sftpUpload(uriList: vscode.Uri[], callback: any): Promise<string>
+    public FindNodeFilesToUpload(architecture : string): Promise<any>
+    {
+        return new Promise<any> ((resolve, reject) => {
+            iotOutputChannel.appendLine('Locating node files to upload.');
+
+            let files: any;
+            const config = vscode.workspace.getConfiguration('iot');
+            const source = config.get('Deployment.Nodejs.Source');
+
+            if (!source)
+            {
+                // Use node-chakracore from Azure. 
+                const ext: any = vscode.extensions.getExtension('ms-iot.windowsiot');
+                const nodeFolder: string  = `${ext.extensionPath}\\${architecture}\\`;
+                files = fileHelper.GetFilesInDirectory(nodeFolder).map(vscode.Uri.file);
+                resolve(files);
+            }
+            else
+            {
+                files = fileHelper.GetFilesInDirectory(source).map(vscode.Uri.file);
+                resolve(files);
+            }
+        });
+    }
+
+
+    public sftpUpload(uriList: vscode.Uri[], ow: boolean, src: any, dest: string, callback: any): Promise<string>
     {
         return new Promise<string> ((resolve, reject) => {
             let options = {
@@ -666,8 +661,9 @@ export class IotDevice {
                 host: this.host,
                 username: this.user,
                 password: this.password,
-                path: vscode.workspace.rootPath,
-                remoteDir: '/C/data/Users/DefaultAccount/AppData/Local/Packages/NodeScriptHost_dnsz84vs3g3zp/LocalState',
+                path: src,
+                remoteDir: dest,
+                overwrite: ow,
             };
 
             let fileList = [];
@@ -701,13 +697,14 @@ export class IotDevice {
         });
     }
 
-    private GetAppxFilesFromAzure(architecture: string, appxDetail: any): Promise<string>
+    private GetNodeFilesFromAzure(architecture: string, nodeSourceInfo: any): Promise<string>
     {
         const ext = vscode.extensions.getExtension('ms-iot.windowsiot');
-        const appxFolder = ext.extensionPath + `\\${architecture}\\`;
-        let downloadRequired = false;
-        appxDetail.blobs.forEach( (uri) => {
-            let filename = appxFolder + urlx.parse(uri).pathname.split('/').pop();
+        const nodeFolder = `${ext.extensionPath}\\${architecture}\\${nodeVersion}\\`;
+        let downloadRequired: boolean = false;
+
+        nodeSourceInfo.blobs.forEach( (uri) => {
+            let filename = nodeFolder + urlx.parse(uri).pathname.split('/').pop();
             if (!fileHelper.FileExists(filename))
             {
                 downloadRequired = true;
@@ -717,10 +714,10 @@ export class IotDevice {
         if (downloadRequired)
         {
             let chain: any = new Promise<string>( (res, rej) => {res('Downloading resources:'); });
-            appxDetail.blobs.forEach( (uri) => {
+            nodeSourceInfo.blobs.forEach( (uri) => {
                 chain = chain.then((message) => {
                     iotOutputChannel.appendLine(message);
-                    let filename = appxFolder + urlx.parse(uri).pathname.split('/').pop();
+                    let filename: string = nodeFolder + urlx.parse(uri).pathname.split('/').pop();
                     return httpHelper.GetFileIfNotFound(uri, filename);
                 }, (err) => {
                     iotOutputChannel.appendLine('ERROR: ' + err);
@@ -737,18 +734,24 @@ export class IotDevice {
     }
 
     public UploadWorkspaceFiles(callback: any)
+    { 
+        return this.FindFilesToUpload().then((uri: vscode.Uri[]) => {
+            const config = vscode.workspace.getConfiguration('iot');
+            const destination = config.get('Deployment.Workspace.Destination') as string;
+            return this.sftpUpload(uri, false, vscode.workspace.rootPath, destination, callback);
+        });
+    }
+
+    public UploadNode(callback: any)
     {
         let architecture: string;
-        let iotAppxDetail: any;
-        let hostInstalled = false;
 
         return this.GetDeviceInfo().then((info) => {
             architecture = this.ArchitectureFromDeviceInfo(info);
-            return this.GetAppxInfo(architecture);
+            return this.GetNodeSourceInfo(architecture);
         })
-        .then ((appxDetail: any) => {
-            iotAppxDetail = appxDetail;
-            return this.GetAppxFilesFromAzure(architecture, iotAppxDetail);
+        .then ((nodeSourceInfo: any) => {
+            return this.GetNodeFilesFromAzure(architecture, nodeSourceInfo);
         })
         .then((message) => {
             if (message)
@@ -756,67 +759,20 @@ export class IotDevice {
                 iotOutputChannel.appendLine(message);
                 iotOutputChannel.appendLine('Download complete');
             }
-            return this.GetPackages();
-        })
-        .then ((info: any) => {
-            hostInstalled = IotDevice.IsInstalled(info, iotAppxDetail.id);
-            return this.InstallPackage(iotAppxDetail, architecture, hostInstalled);
-        })
-        .then((resp: any) => {
-            return this.WaitForAppxInstall(iotAppxDetail.id, hostInstalled);
-        })
-        .then((info: any) => {
-            return this.FindFilesToUpload();
+            return this.FindNodeFilesToUpload(architecture);
         })
         .then((uri: vscode.Uri[]) => {
-            return this.sftpUpload(uri, callback);
-        });
-    }
+            const ext  = vscode.extensions.getExtension('ms-iot.windowsiot');
+            const config = vscode.workspace.getConfiguration('iot');
+            const destination = config.get('Deployment.Nodejs.Destination') as string;
+            let source: string = config.get('Deployment.Nodejs.Source') as string;
 
-    public GetPackages()
-    {
-        return new Promise<any>( (resolve, reject) =>
-        {
-            const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            request.get(url, param, (err, resp, body) => {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    reject(err);
-                } else {
-                    const info = JSON.parse(body);
-                    resolve(info);
-                }
-            });
-        });
-    }
-
-    public PrintPackages(info: any)
-    {
-        iotOutputChannel.show();
-        iotOutputChannel.appendLine( 'Get Installed Packages:');
-        iotOutputChannel.appendLine( 'Device=' + this.host );
-        iotOutputChannel.appendLine( '');
-        info.InstalledPackages.forEach((element) => {
-            iotOutputChannel.appendLine( 'Name: ' + element.Name );
-            iotOutputChannel.appendLine( 'PackageFamilyName: ' + element.PackageFamilyName);
-            iotOutputChannel.appendLine( 'PackageFullName: ' + element.PackageFullName);
-            iotOutputChannel.appendLine( 'PackageOrigin: ' + element.PackageOrigin);
-            iotOutputChannel.appendLine( 'PackageRelativeId: ' + element.PackageRelativeId);
-            iotOutputChannel.appendLine( 'Publisher: ' + element.Publisher);
-            element.RegisteredUsers.forEach((user) => {
-            iotOutputChannel.appendLine( 'UserDisplayName: ' + user.UserDisplayName);
-            iotOutputChannel.appendLine( 'Name: ' + user.UserSID);
-            });
-            iotOutputChannel.appendLine( 'Version: ' + element.Version.Build + '.' + element.Version.Major + '.' + element.Version.Minor);
-            iotOutputChannel.appendLine( '');
+            if (!source)
+            {
+                source = `${ext.extensionPath}\\${architecture}\\`;
+            }        
+            
+            return this.sftpUpload(uri, true, source, destination, callback);
         });
     }
 
@@ -844,10 +800,10 @@ export class IotDevice {
         });
     }
 
-    private OpenSettingsJson(): Promise<vscode.TextEditor>
+    private OpenWorkspaceFile(fileName: string): Promise<vscode.TextEditor>
     {
         return new Promise<vscode.TextEditor> ((resolve, reject) => {
-            vscode.workspace.findFiles('.vscode/settings.json', '', 1)
+            vscode.workspace.findFiles(`.vscode/${fileName}`, '', 1)
             .then((results) => {
                 results.forEach( (r) => {
                     vscode.workspace.openTextDocument(r)
@@ -863,54 +819,148 @@ export class IotDevice {
         });
     }
 
-    public InitSettings(): Promise<string>
+    public InitWorkspace(): Promise<string>
+    {
+        this.InitSettingsJson()
+        .then((resolve) => {
+            return this.InitLaunchJson();
+        })
+        .then((resolve) => {
+            return this.InitNodeRemoteDebug();
+        })
+        .then((resolve) => {
+            this.PrintMessage(resolve);
+        });
+    }
+
+    private InitSettingsJson(): Promise<string>
     {
         return new Promise((resolve, reject) => {
             let vscodeDir = vscode.workspace.rootPath + '/.vscode';
             let settingsJson = vscodeDir + '/settings.json';
-
-            console.log(`settings.json=${vscodeDir}`);
-            console.log(`settings.json=${settingsJson}`);
 
             if (!fileHelper.DirectoryExists(vscodeDir))
             {
                 fs.mkdirSync(vscodeDir);
             }
 
+            // Update settings.json file
             if (fileHelper.FileExists(settingsJson))
             {
-                this.OpenSettingsJson()
-                .then((editor: vscode.TextEditor) => {
-                    // can't parse any JSON with comments so just tell the user they already have a settings file
-                    resolve('WARNING: settings.json found.\nTo generate the template settings.json delete your current settings.json before running this command.\n');
-                }, (err) => {
-                    reject(err.message);
-                });
+                this.PrintMessage('WARNING: settings.json found.\nTo generate the template settings.json delete your current settings.json before running this command.\n');
+                resolve();
             }
             else
             {
-                let newSettings = defaultSettings;
+                let newSettings: any = defaultSettings;
                 newSettings.iot.Device.IpAddress = this.host;
                 newSettings.iot.Device.DeviceName = this.devName;
                 newSettings.iot.Device.UserName = this.user;
                 newSettings.iot.Device.Password = this.password;
-                newSettings.iot.Deployment.LaunchBrowserPageNo = `http://${this.host}:1337/`;
+                const destination = `c${vscode.workspace.rootPath.substr(1, vscode.workspace.rootPath.length)}`;
+                newSettings.iot.Deployment.Workspace.Destination = destination;
+                const nodeDestination = defaultSettings.iot.Deployment.Nodejs.Destination;
+
+                // todo: try to get 'app.js' name from package.json either from main or start.
+                newSettings.iot.RunCommands = [`${nodeDestination}\\${nodeVersion}\\node.exe ${destination}\\nodeRemoteDebug.js -breakatentrypoint ${destination}\\app.js`]
 
                 fs.writeFile(settingsJson, JSON.stringify(defaultSettings, null, 2), (writeFileErr) => {
                     if (writeFileErr)
                     {
-                        reject(writeFileErr.message);
+                        this.PrintMessage(writeFileErr.message);
+                        reject();
                     }
                     else
                     {
-                        this.OpenSettingsJson()
+                        this.OpenWorkspaceFile('settings.json')
                         .then((editor: vscode.TextEditor) => {
-                            resolve ('settings.json created\n');
+                            this.PrintMessage('settings.json created\n');
+                            resolve();
                         }, (openSettingsErr) => {
-                            reject(openSettingsErr.message);
+                            this.PrintMessage(openSettingsErr.message);
+                            reject();
                         });
                     }
                 });
+            }
+        });
+    }
+
+    private InitNodeRemoteDebug(): Promise<string>
+    {
+        return nodeDebugHelper.CopyRemoteDebugScriptToWorkspace();
+    }
+
+    private InitLaunchJson(): Promise<string>
+    {
+        return new Promise((resolve, reject) => {
+            const vscodeDir = vscode.workspace.rootPath + '/.vscode';
+            const launchJson = path.join(vscodeDir, 'launch.json');
+
+            if (!fileHelper.DirectoryExists(vscodeDir))
+            {
+                fs.mkdirSync(vscodeDir);
+            }
+
+            // Update launch.json file. User needs to have ran the 'Debug: Open launch.json' command.
+            if (fileHelper.FileExists(launchJson))
+            {
+                let launchJsonContent: any = stripJsonComments(fs.readFileSync(launchJson).toString());
+                let makeupdate: boolean = true;
+                launchJsonContent = JSON.parse(launchJsonContent);
+
+                for (let i = 0; i < launchJsonContent.configurations.length; i++)
+                {
+                    if (launchJsonContent.configurations[i].name === 'Attach to Process (IoT)')
+                    {
+                        makeupdate = false;
+                        break;
+                    }
+                }
+
+                if(makeupdate)
+                {
+                    let iotLaunchConfig = {
+                        "type": "node",
+                        "request": "attach",
+                        "name": "Attach to Process (IoT)",
+                        "port": 5858,
+                        "address": `${this.devName}`,
+                        "localRoot": `${vscode.workspace.rootPath}`,
+                        "remoteRoot": `c${vscode.workspace.rootPath.substr(1, vscode.workspace.rootPath.length)}`
+                    };
+
+                    launchJsonContent.configurations.push(iotLaunchConfig);
+
+                    fs.writeFile(launchJson, JSON.stringify(launchJsonContent, null, 2), (writeFileErr) => {
+                        if (writeFileErr)
+                        {
+                            this.PrintMessage('writeFileErr.message\n');
+                            reject();
+                        }
+                        else
+                        {
+                            this.OpenWorkspaceFile('launch.json')
+                            .then((editor: vscode.TextEditor) => {
+                                this.PrintMessage('launch.json updated\n');
+                                resolve();
+                            }, (openSettingsErr) => {
+                                this.PrintMessage(openSettingsErr.message);
+                                reject();
+                            });
+                        }
+                    });
+                }
+                else
+                {
+                    this.PrintMessage('launch.json has already been updated\n');
+                    resolve();
+                }
+            }
+            else
+            {
+                this.PrintMessage('ERROR: launch.json found. Run the Debug:Open launch.json command for Node.js first.\n');
+                reject();
             }
         });
     }
@@ -928,115 +978,14 @@ export class IotDevice {
         });
     }
 
-    public PrintProcessInfo(info: any, appxOnly: boolean)
+    public PrintProcessInfo(info: any)
     {
         iotOutputChannel.show();
-        if (appxOnly){
-            iotOutputChannel.appendLine( 'Get APPX Process Info:');
-        }
-        else{
-            iotOutputChannel.appendLine( 'Get Process Info:');
-            iotOutputChannel.appendLine( 'Device=' + this.host );
-            iotOutputChannel.appendLine( '');
-        }
+        iotOutputChannel.appendLine( 'Get Process Info:');
+        iotOutputChannel.appendLine( `Device=${this.host}` );
+
         info.Processes.forEach((proc) => {
-            if (!appxOnly || proc.PackageFullName)
-            {
-                if (proc.AppName) { iotOutputChannel.appendLine( 'AppName: ' + proc.AppName ); };
-                if (proc.PackageFullName) { iotOutputChannel.appendLine( 'PackageFullName: ' + proc.PackageFullName ); };
-                if (!appxOnly)
-                {
-                    if (proc.IsRunning) { iotOutputChannel.appendLine( 'IsRunning: ' + proc.IsRunning ); };
-                    if (proc.Publisher) { iotOutputChannel.appendLine( 'Publisher: ' + proc.Publisher ); };
-                    if (proc.Version) { iotOutputChannel.appendLine( 'Version: ' + proc.Version.Major + '.' + proc.Version.Minor + '.' + proc.Version.Revision + '.' + proc.Version.Build); };
-                    iotOutputChannel.appendLine( 'CPUUsage: ' + proc.CPUUsage );
-                    iotOutputChannel.appendLine( 'ImageName: ' + proc.ImageName );
-                    iotOutputChannel.appendLine( 'PageFileUsage: ' + proc.PageFileUsage );
-                    iotOutputChannel.appendLine( 'PrivateWorkingSet: ' + proc.PrivateWorkingSet );
-                    iotOutputChannel.appendLine( 'ProcessId: ' + proc.ProcessId );
-                    iotOutputChannel.appendLine( 'SessionId: ' + proc.SessionId );
-                    iotOutputChannel.appendLine( 'UserName: ' + proc.UserName );
-                    iotOutputChannel.appendLine( 'VirtualSize: ' + proc.VirtualSize );
-                    iotOutputChannel.appendLine( 'WorkingSetSize: ' + proc.WorkingSetSize );
-                }
-                iotOutputChannel.appendLine( '');
-            }
-        });
-    }
-
-    private InstallPackage(appxInfo: any, architecture: string, hostInstalled: boolean): Promise<any>
-    {
-        return new Promise<any> ((resolve, reject) => {
-            iotOutputChannel.show();
-            if (hostInstalled)
-            {
-                iotOutputChannel.appendLine('NodeScriptHost is already installed');
-                resolve(null);
-                return;
-            }
-
-            const ext = vscode.extensions.getExtension('ms-iot.windowsiot');
-            const appxFolder = ext.extensionPath + `\\${architecture}\\`;
-            console.log('ext.extensionPath=' + ext.extensionPath);
-
-            const appxPath = appxFolder + appxInfo.package;
-            const appxFile = fileHelper.FileFromPath(appxPath);
-            const certPath = appxFolder + appxInfo.certificate;
-            const certFile = fileHelper.FileFromPath(certPath);
-
-            const url = 'http://' + this.host + ':8080/api/appx/packagemanager/package?package=' + appxFile;
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            iotOutputChannel.appendLine('Installing Appx Package...');
-            console.log('appxPath=' + appxPath);
-            console.log('appxFile=' + appxFile);
-            console.log('certPath=' + certPath);
-            console.log('certFile=' + certFile);
-
-            const req = request.post(url, param, (err, resp, body) => {
-                if (err){
-                    console.log(err.message);
-                    iotOutputChannel.appendLine(err.message);
-                    iotOutputChannel.appendLine( '' );
-                    reject(err);
-                } else {
-                    if (resp.statusCode === 200)
-                    {
-                        iotOutputChannel.appendLine(`Successfully installed ${appxFile}`);
-                        resolve(resp);
-                    }
-                    else if (resp.statusCode === 202)
-                    {
-                        const info = JSON.parse(body);
-                        console.log(info.Reason);
-                        console.log('status=' + resp.statusCode);
-                        resolve(resp);
-                    }
-                    else
-                    {
-                        iotOutputChannel.appendLine('message=' + resp.statusMessage);
-                        iotOutputChannel.appendLine('status=' + resp.statusCode);
-                        reject(resp);
-                    }
-                    console.log( '' );
-                }
-            });
-            const form = req.form();
-
-            form.append(appxFile, fs.createReadStream(appxPath));
-            form.append(certFile, fs.createReadStream(certPath));
-            appxInfo.dependencies.forEach((dependency) => {
-                const depFile = fileHelper.FileFromPath(appxFolder + dependency);
-                const depPath = appxFolder + dependency;
-                console.log('depFile=' + depFile);
-                console.log('depPath=' + depPath);
-                form.append(depFile, fs.createReadStream(depPath));
-            });
+            iotOutputChannel.appendLine( `${proc.ProcessId} ${proc.ImageName}` );
         });
     }
 
@@ -1100,8 +1049,7 @@ export class IotDevice {
             {
                 commands =
                 [
-                    'tlist',
-                    'deployappx getpackages',
+                    'tlist'
                 ];
             }
             vscode.window.showQuickPick(commands)
@@ -1117,288 +1065,6 @@ export class IotDevice {
     {
         return new Promise<any> ((resolve, reject) => {
             this.RunCommandInternal(command, resolve, reject, quiet);
-        });
-    }
-
-    public static IsInstalled(info: any, packageRelativeId: string): boolean
-    {
-        let installed = false;
-        info.InstalledPackages.some((installedPackage) => {
-            if (packageRelativeId === installedPackage.PackageRelativeId)
-            {
-                installed = true;
-                return installed;
-            }
-        });
-        return installed;
-    }
-
-    public static IsRunning(info: any, packageFullName: string): boolean
-    {
-        let running = false;
-        info.Processes.some((proc) => {
-            if (packageFullName === proc.PackageFullName)
-            {
-                running = true;
-                return running;
-            }
-        });
-        return running;
-    }
-
-    public RunRemoteScript()
-    {
-        let architecture: string;
-        let iotAppxDetail: any;
-        let hostInstalled = false;
-        let hostRunning = false;
-
-        iotOutputChannel.show();
-        iotOutputChannel.appendLine('Run Remote Script:');
-
-        return this.GetDeviceInfo().then((info) => {
-            architecture = this.ArchitectureFromDeviceInfo(info);
-            return this.GetAppxInfo(architecture);
-        })
-        .then ((appxDetail: any) => {
-            iotAppxDetail = appxDetail;
-            return this.GetAppxFilesFromAzure(architecture, iotAppxDetail);
-        })
-        .then((message) => {
-            if (message)
-            {
-                iotOutputChannel.appendLine(message);
-                iotOutputChannel.appendLine('Download complete');
-            }
-            return this.GetPackages();
-        })
-        .then ((info: any) => {
-            hostInstalled = IotDevice.IsInstalled(info, iotAppxDetail.id);
-            return this.InstallPackage(iotAppxDetail, architecture, hostInstalled);
-        })
-        .then((resp: any) => {
-            return this.WaitForAppxInstall(iotAppxDetail.id, hostInstalled);
-        })
-        .then((info: any) => {
-            return this.GetProcessInfo();
-        })
-        .then((info: any) => {
-            hostRunning = IotDevice.IsRunning(info, iotAppxDetail.packageFullName);
-            iotOutputChannel.appendLine(hostRunning ? 'Stopping NodeScriptHost...' : 'NodeScriptHost is not running.');
-            return this.StopAppx(iotAppxDetail.packageFullName, hostRunning);
-        })
-        .then((resp: any) => {
-            return this.WaitForAppxStop(iotAppxDetail.packageFullName, hostRunning);
-        })
-        .then((message: string) => {
-            if (message)
-            {
-                iotOutputChannel.appendLine(message);
-            }
-            return this.FindFilesToUpload();
-        })
-        .then((uri: vscode.Uri[]) => {
-            return this.sftpUpload(uri, (m) => {
-                iotOutputChannel.appendLine(m);
-            });
-        }).then((message) => {
-            iotOutputChannel.appendLine(message);
-            iotOutputChannel.appendLine('Starting NodeScriptHost...');
-            return this.ActivateApplication(iotAppxDetail.packageFullName);
-        })
-        .then((b: boolean) => {
-            const config = vscode.workspace.getConfiguration('iot');
-            let launchBrowserPage = config.get('Deployment.LaunchBrowserPage', '');
-            if (launchBrowserPage)
-            {
-                delay(3000).then(() => {
-                    iotOutputChannel.appendLine(`Navigate to ${launchBrowserPage} in a browser\n`);
-
-                    // launch browser (probably only works on windows)
-                    spawn('cmd.exe', ['/C', 'start', launchBrowserPage]);
-                });
-            }
-            else
-            {
-                iotOutputChannel.appendLine('Done.');
-            }
-        });
-    }
-
-    public ActivateApplication(packageFullName: string): Thenable<any>
-    {
-        return new Promise ((resolve, reject) => {
-            const url = 'http://' + this.host + ':8080/api/iot/appx/app?appid=' + new Buffer(packageFullName).toString('base64');
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            request.post(url, param, (err, resp, body) => {
-                if (err){
-                    reject(err);
-                } else {
-                    resolve(resp);
-                }
-            });
-        });
-    }
-
-    public StartNodeScriptHost()
-    {
-        let iotAppxDetail: any;
-        let architecture: string;
-
-        iotOutputChannel.show();
-        iotOutputChannel.appendLine('Start Node Script Host:');
-
-        return this.GetDeviceInfo().then((info) => {
-            architecture = this.ArchitectureFromDeviceInfo(info);
-            return this.GetAppxInfo(architecture);
-        }).then ((appxDetail) => {
-            iotAppxDetail = appxDetail;
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Activating ${iotAppxDetail.packageFullName}`);
-            return this.ActivateApplication(iotAppxDetail.packageFullName);
-        }).then ((resp: any) => {
-            iotOutputChannel.appendLine('Application Started');
-            iotOutputChannel.appendLine( '' );
-        }, (err) => {
-            console.log(err.message);
-            iotOutputChannel.appendLine(err.message);
-            iotOutputChannel.appendLine( '' );
-        });
-    }
-
-    public StopAppx(packageFullName: string, hostRunning: boolean): Thenable<any>
-    {
-        return new Promise<any> ((resolve, reject) => {
-            if (!hostRunning)
-            {
-                resolve(null);
-                return;
-            }
-
-            const url = 'http://' + this.host + ':8080/api/taskmanager/app?package=' + new Buffer(packageFullName).toString('base64');
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            request.delete(url, param, (err, resp, body) => {
-                if (err){
-                    reject(err);
-                } else {
-                    resolve(resp);
-                }
-            });
-        });
-    }
-
-    public WaitForAppxInstall(packageRelativeId: string, hostInstalled: boolean): Promise<string>
-    {
-        return new Promise<any>((resolve, reject) => {
-            if (hostInstalled)
-            {
-                resolve(null);
-                return;
-            }
-
-            const url = 'http://' + this.host + ':8080/api/appx/packagemanager/packages';
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            /* tslint:disable:only-arrow-functions */
-            (function WaitForAppxInstallCallback(){
-                /* tslint:enable:only-arrow-functions */
-                request.get(url, param, (err, resp, body) => {
-                    if (err){
-                        console.log(err.message);
-                        iotOutputChannel.appendLine(err.message);
-                        reject(err);
-                    } else {
-                        const info = JSON.parse(body);
-                        if (IotDevice.IsInstalled(info, packageRelativeId))
-                        {
-                            resolve(info);
-                        }
-                        else
-                        {
-                            setTimeout(WaitForAppxInstallCallback, 1000);
-                        }
-                    }
-                });
-            })();
-        });
-    }
-
-    public WaitForAppxStop(packageFullName: string, hostRunning: boolean): Promise<string>
-    {
-        return new Promise<any>((resolve, reject) => {
-            if (!hostRunning)
-            {
-                resolve(null);
-                return;
-            }
-
-            const url = 'http://' + this.host + ':8080/api/resourcemanager/processes';
-            console.log ('url=' + url);
-
-            const param = {'auth': {
-                'user': this.user,
-                'pass': this.password,
-            }};
-
-            /* tslint:disable:only-arrow-functions */
-            (function WaitForAppxStopCallback(){
-                /* tslint:enable:only-arrow-functions */
-                request.get(url, param, (err, resp, body) => {
-                    if (err){
-                        console.log(err.message);
-                        reject(err.message);
-                    } else {
-                        const info = JSON.parse(body);
-                        if (IotDevice.IsRunning(info, packageFullName))
-                        {
-                            setTimeout(WaitForAppxStopCallback, 1000);
-                        }
-                        else
-                        {
-                            let message = `Done waiting for ${packageFullName}  to stop`;
-                            resolve(message);
-                        }
-                    }
-                });
-            })();
-        });
-    }
-
-    public StopNodeScriptHost()
-    {
-        let architecture: string;
-
-        return this.GetDeviceInfo().then((info) => {
-            architecture = this.ArchitectureFromDeviceInfo(info);
-            return this.GetAppxInfo(architecture);
-        }).then ((appxDetail) => {
-            iotOutputChannel.show();
-            iotOutputChannel.appendLine(`Stopping ${appxDetail.packageFullName}`);
-            return this.StopAppx(appxDetail.packageFullName, true);
-        }).then ((resp: any) => {
-            iotOutputChannel.appendLine('Application Stopped');
-            iotOutputChannel.appendLine( '' );
-        }, (err) => {
-            console.log(err.message);
-            iotOutputChannel.appendLine(err.message);
-            iotOutputChannel.appendLine( '' );
         });
     }
 

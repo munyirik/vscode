@@ -29,6 +29,7 @@
 		"triple-equals": true,
 		"use-strict": [true, "check-function", "check-module"],
 		"variable-name": [true, "check-format", "ban-keywords"],
-		"whitespace": [true, "check-branch", "check-decl", "check-module", "check-operator", "check-separator", "check-type", "check-typecast"]
+		"whitespace": [true, "check-branch", "check-decl", "check-module", "check-operator", "check-separator", "check-type", "check-typecast"],
+		"max-classes-per-file": [false]
 	}
 }

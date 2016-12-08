@@ -67,7 +67,7 @@ SftpHelper.prototype.addFiles = function(files, baseDir, uploads, fileMap){
     });
 };
 
-SftpHelper.prototype.addFilesFromList = function(uploads, fileList, fileMap){
+SftpHelper.prototype.addFilesFromList = function(uploads, fileList, fileMap, opt){
     fileList.forEach(function(currentFile){
         let stats = fs.statSync(currentFile);
 
@@ -78,7 +78,7 @@ SftpHelper.prototype.addFilesFromList = function(uploads, fileList, fileMap){
             {
                  timediff = stats.ctime - fileMap.get(currentFile);
             }
-            if (!mapHasFile || (timediff !== 0))
+            if (!mapHasFile || (timediff !== 0) || opt.overwrite === true)
             {
                 uploads.push(currentFile);
             }
@@ -126,7 +126,7 @@ SftpHelper.prototype.uploadFiles = function(files, fileMap, opt){
 SftpHelper.prototype.uploadWorkspaceFiles = function(fileList, fileMap){
     let self = this;
     let opt = self.defaults;
-    this.addFilesFromList(self.uploads, fileList, fileMap);
+    this.addFilesFromList(self.uploads, fileList, fileMap, opt);
     this.uploadFiles(self.uploads, fileMap, opt);
     return this;
 };

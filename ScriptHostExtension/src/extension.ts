@@ -51,24 +51,12 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetPackages);
 
-    const disposableGetAppxProcessInfo = vscode.commands.registerCommand('extension.getAppxProcessInfo', () => {
-        const iotDevice = new IotDevice();
-        iotDevice.Init().then((b: boolean) => {
-            return iotDevice.GetProcessInfo();
-        }).then( (info: any) => {
-            iotDevice.PrintProcessInfo(info, true);
-        });
-
-    });
-
-    context.subscriptions.push(disposableGetAppxProcessInfo);
-
     const disposableGetProcessInfo = vscode.commands.registerCommand('extension.getProcessInfo', () => {
         const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
             return iotDevice.GetProcessInfo();
         }).then( (info: any) => {
-            iotDevice.PrintProcessInfo(info, false);
+            iotDevice.PrintProcessInfo(info);
         });
 
     });
@@ -96,6 +84,22 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableUploadFile);
 
+    const disposableUploadNode = vscode.commands.registerCommand('extension.uploadNode', () => {
+        const iotDevice = new IotDevice();
+        iotDevice.Init().then((b: boolean) => {
+            iotDevice.PrintMessage('Upload Node:');
+            return iotDevice.UploadNode( (m) => {
+                iotDevice.PrintMessage(m);
+            });
+        })
+        .then((message: string) => {
+            iotDevice.PrintMessage(message);
+        }, (err) => {
+            iotDevice.PrintMessage(err);
+        });
+    });
+    context.subscriptions.push(disposableUploadNode);
+
     const disposableGetDeviceName = vscode.commands.registerCommand('extension.getDeviceName', () => {
         const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
@@ -109,18 +113,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(disposableGetDeviceName);
 
-    const disposableInitSettings = vscode.commands.registerCommand('extension.initSettings', () => {
+    const disposableInitWorkspace = vscode.commands.registerCommand('extension.initWorkspace', () => {
         const iotDevice = new IotDevice();
         iotDevice.Init().then((b: boolean) => {
-            return iotDevice.InitSettings();
-        })
-        .then((message: string) => {
-            iotDevice.PrintMessage(message);
-        }, (err) => {
-            iotDevice.PrintMessage(err);
+            return iotDevice.InitWorkspace();
         });
     });
-    context.subscriptions.push(disposableInitSettings);
+    context.subscriptions.push(disposableInitWorkspace);
 
     const disposableListDevices = vscode.commands.registerCommand('extension.listDevices', () => {
         IotDevice.ListDevices();
@@ -193,30 +192,6 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
     context.subscriptions.push(disposableRunCommandFromSettings);
-
-    const disposableRunRemoteScript = vscode.commands.registerCommand('extension.runRemoteScript', () => {
-        const iotDevice = new IotDevice();
-        iotDevice.Init().then((b: boolean) => {
-            iotDevice.RunRemoteScript();
-        });
-    });
-    context.subscriptions.push(disposableRunRemoteScript);
-
-    const disposableStartNodeScriptHostopApp = vscode.commands.registerCommand('extension.startNodeScriptHost', () => {
-        const iotDevice = new IotDevice();
-        iotDevice.Init().then((b: boolean) => {
-            iotDevice.StartNodeScriptHost();
-        });
-    });
-    context.subscriptions.push(disposableStartNodeScriptHostopApp);
-
-    const disposableStopNodeScriptHost = vscode.commands.registerCommand('extension.stopNodeScriptHost', () => {
-        const iotDevice = new IotDevice();
-        iotDevice.Init().then((b: boolean) => {
-            iotDevice.StopNodeScriptHost();
-        });
-    });
-    context.subscriptions.push(disposableStopNodeScriptHost);
 }
 
 // this method is called when your extension is deactivated
